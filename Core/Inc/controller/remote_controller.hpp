@@ -5,18 +5,23 @@
 #ifndef EHECATL_REMOTE_CONTROLLER_HPP
 #define EHECATL_REMOTE_CONTROLLER_HPP
 
+
 #include "stm32f4xx_hal.h"
 #include "communication.hpp"
 
 
 namespace EHECATL{
-    template<int COMMAND_COUNT>
+
+
+
+
+
     class controller{
     private: //variables
         //screen
         //joysticks
         TIM_HandleTypeDef &timer;
-        EHECATL::communication<COMMAND_COUNT> &communicator;
+        EHECATL::communication &communicator;
         int state = 1;
 
     public: //variables
@@ -35,12 +40,12 @@ namespace EHECATL{
             HAL_TIM_PWM_Start(&timer, channel); // start pwm generation
         }
 
-        void test_function(unsigned int command, unsigned int * payload){
-            setPWM(timer, TIM_CHANNEL_2,  100, payload[0]);
-            setPWM(timer, TIM_CHANNEL_3,  100, payload[1]);
+        void test_function(uint8_t command, uint8_t * payload, uint8_t len){
+            setPWM(timer, TIM_CHANNEL_2,  4096, ((unsigned int *)payload)[0]);
+            setPWM(timer, TIM_CHANNEL_3,  4096, ((unsigned int *)payload)[1]);
         }
 
-        void second_function(unsigned int command, unsigned int * payload){
+        void second_function(uint8_t command, uint8_t * payload, uint8_t len){
             if(state == 1){
                 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
                 state = 0;
@@ -51,13 +56,13 @@ namespace EHECATL{
         }
 
         int init(){
-            communicator.addNewCallback(001, COMM_CALLBACK(test_function));
-            communicator.addNewCallback(002, COMM_CALLBACK(second_function));
+            communicator.addNewCallback(005, COMM_CALLBACK(test_function));
+            communicator.addNewCallback(006, COMM_CALLBACK(second_function));
             return 1;
         }
 
     public: //functions
-        controller(TIM_HandleTypeDef &timer, EHECATL::communication<COMMAND_COUNT> &communicator) : timer(timer), communicator(communicator) {
+        controller(TIM_HandleTypeDef &timer, EHECATL::communication &communicator) : timer(timer), communicator(communicator) {
             init();
         }
 
