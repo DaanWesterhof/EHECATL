@@ -6,7 +6,7 @@
 #define EHECATL_PID_HPP
 
 #include "stm32f4xx_hal.h"
-#include "MPU6050.hpp"
+#include "MPU6050.h"
 
 namespace EHECATL {
 

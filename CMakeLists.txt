@@ -55,7 +55,7 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Core/Inc/base Core/Inc/controller Core/Inc/drone Core/Inc/cpp_nrf24l01/include Drivers/i2cdevlib/STM32HAL/I2Cdev Drivers/i2cdevlib/STM32HAL/MPU6050 Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include)
+include_directories(Core/Inc Core/Inc/base Core/Inc/controller Core/Inc/drone Core/Inc/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include)
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F401xC)
 

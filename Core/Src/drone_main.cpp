@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "MPU6050.h"
 #include "drone_main.hpp"
 #include "communication.hpp"
 #include "drone.hpp"
@@ -41,6 +42,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define PI 3.14159265359
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -81,7 +83,19 @@ static void SELF_I2C_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+char read[5];
+int a;
+uint8_t g[3];
+float gyro_X,gyro_Y,gyro_Z,temp;
 
+//I2cdev MPU6050
+MPU6050 mpu;
+uint16_t packetSize;
+uint16_t fifoCount;
+uint8_t fifoBuffer[64];
+Quaternion q;
+VectorFloat gravity;
+float ypr[3];
 
 
 /* USER CODE END 0 */
@@ -124,22 +138,46 @@ int drone_main(void)
     /* USER CODE BEGIN 2 */
     SELF_I2C_Init();
 
-    char text[] = "Het apparaat is opgestart\n";
-    HAL_UART_Transmit(&huart1, (uint8_t*)text, strlen(text), 100);
+    I2Cdev_init(&hi2c1);
+
+    uint8_t text_buffer[100];
+    sprintf((char *)text_buffer, "Het apparaat is opgestart\n");
+    HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::drone drone(htim2, comms);
 
     comms.setDeviceId(2);
     comms.setTargetId(1);
-    I2Cdev_init(&hi2c1);
-    MPU6050_initialize();
-    MPU6050_dmpInitialize();
-    HAL_Delay(100);
-    MPU6050_CalibrateGyro(1);
-    MPU6050_CalibrateAccel(1);
-    HAL_Delay(100);
-    MPU6050_setDMPEnabled(true);
+
+    mpu.initialize();
+    uint8_t val = mpu.dmpInitialize();
+    if(val == 0){
+        sprintf((char *)text_buffer, "Dmp Initialised\n");
+        HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
+
+    }else{
+        sprintf((char *)text_buffer, "Something went wrong: %u\n", val);
+        HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
+    }
+//    mpu.setXGyroOffset(82);
+//    mpu.setYGyroOffset(-23);
+//    mpu.setZGyroOffset(-25);
+//
+//    mpu.setXAccelOffset(686);
+//    mpu.setYAccelOffset(-3251);
+//    mpu.setZAccelOffset(1029);
+
+    sprintf((char *)text_buffer, "We got here\n");
+    HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
+
+
+    mpu.setDMPEnabled(true);
+    packetSize = mpu.dmpGetFIFOPacketSize();
+    fifoCount = mpu.getFIFOCount();
+
+    sprintf((char *)text_buffer, "done things\n");
+    HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
 
     /* USER CODE END 2 */
 
@@ -147,11 +185,7 @@ int drone_main(void)
     /* USER CODE BEGIN WHILE */
     HAL_Delay(100);
     volatile uint8_t _true = 1;
-    uint8_t buffer[100] = {};
-    uint8_t data_buffer[50] = {};
-    float rot_data[20] = {};
-    int16_t ax, ay, az, gx, gy, gz;
-    Quaternion q;
+
     while (_true)
     {
         /* USER CODE END WHILE */
@@ -159,25 +193,57 @@ int drone_main(void)
         /* USER CODE BEGIN 3 */
         comms.update();
         HAL_Delay(10);
-        uint16_t temp = MPU6050_getTemperature();
-        MPU6050_dmpGetCurrentFIFOPacket(data_buffer);
-        MPU6050_dmpGetQuaternion(&q, data_buffer);
-        MPU6050_dmpGetEuler(rot_data, &q);
-//        MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-//        int16_t rotation = MPU6050_getAccelerationX();
-//        sprintf((char *) buffer, "temp:%u\n", temp);
-//        HAL_UART_Transmit(&huart1, buffer, strlen((char *)buffer), 100);
-//        sprintf((char *) buffer, "ax:, az, gx, gy, gz:%u\n", rotation);
-//        HAL_UART_Transmit(&huart1, buffer, strlen((char *)buffer), 100);
-//        sprintf((char *) buffer, "rotation:%i\n", rotation);
-//        HAL_UART_Transmit(&huart1, buffer, strlen((char *)buffer), 100);
-        sprintf((char *)buffer, "x:%f y:%f z:%f\n", rot_data[0], rot_data[1], rot_data[2]);
-        HAL_UART_Transmit(&huart1, buffer, strlen((char *)buffer), 100);
-        HAL_Delay(10);
+        while (fifoCount < packetSize) {
+            //insert here your code
+            fifoCount = mpu.getFIFOCount();
+
+        }
+
+        if (fifoCount >= 1024) {
+
+            mpu.resetFIFO();
+            //Serial.println(F("FIFO overflow!"));
+
+        }
+        else{
+
+            if (fifoCount % packetSize != 0) {
+
+                mpu.resetFIFO();
+                fifoCount = mpu.getFIFOCount();
+
+            }
+            else{
+
+                while (fifoCount >= packetSize) {
+
+                    mpu.getFIFOBytes(fifoBuffer,packetSize);
+                    fifoCount -= packetSize;
+
+                }
+
+                mpu.dmpGetQuaternion(&q,fifoBuffer);
+                mpu.dmpGetGravity(&gravity,&q);
+                mpu.dmpGetYawPitchRoll(ypr,&q,&gravity);
+
+
+                char txt[32];
+
+                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "NUM: %u \t", a),100);
+                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "GYROX: %2.3f \t", ypr[1]*180/PI),100); // @suppress("Float formatting support")
+                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "GYROY: %2.3f \t", ypr[2]*180/PI),100); // @suppress("Float formatting support")
+                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "GYROZ: %2.3f \n\r", ypr[0]*180/PI),100); // @suppress("Float formatting support")
+
+            }
+
+        }
+
+        a++;
+
+        HAL_Delay(50);
     }
     return 0;
     /* USER CODE END 3 */
-
 }
 
 /**
