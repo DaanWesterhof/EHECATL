@@ -13,7 +13,7 @@ void Add_ADC_Channel(ADC_HandleTypeDef* hadc, uint32_t channel, uint32_t samplin
     sConfig.Channel = channel;
     sConfig.Rank = 1;
     sConfig.SamplingTime = sampling_time;
-    if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK) { Error_Handler(); }
+    HAL_ADC_ConfigChannel(hadc, &sConfig);
 }
 
 uint32_t Read_ADC_Channel(ADC_HandleTypeDef* hadc, uint32_t channel, uint32_t sampling_time) {
