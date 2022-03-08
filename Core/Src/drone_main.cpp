@@ -88,14 +88,9 @@ int a;
 uint8_t g[3];
 float gyro_X,gyro_Y,gyro_Z,temp;
 
-//I2cdev MPU6050
-MPU6050 mpu;
-uint16_t packetSize;
-uint16_t fifoCount;
-uint8_t fifoBuffer[64];
-Quaternion q;
-VectorFloat gravity;
-float ypr[3];
+
+
+
 
 
 /* USER CODE END 0 */
@@ -137,47 +132,19 @@ int drone_main(void)
 
     /* USER CODE BEGIN 2 */
     SELF_I2C_Init();
-
-    I2Cdev_init(&hi2c1);
-
     uint8_t text_buffer[100];
     sprintf((char *)text_buffer, "Het apparaat is opgestart\n");
     HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
-    EHECATL::drone drone(htim2, comms);
+    EHECATL::PID_Controller pic_controller(comms);
+    EHECATL::Motors motors(comms);
+    EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
 
+    mpu.setOffsets();
     comms.setDeviceId(2);
     comms.setTargetId(1);
 
-    mpu.initialize();
-    uint8_t val = mpu.dmpInitialize();
-    if(val == 0){
-        sprintf((char *)text_buffer, "Dmp Initialised\n");
-        HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
-
-    }else{
-        sprintf((char *)text_buffer, "Something went wrong: %u\n", val);
-        HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
-    }
-//    mpu.setXGyroOffset(82);
-//    mpu.setYGyroOffset(-23);
-//    mpu.setZGyroOffset(-25);
-//
-//    mpu.setXAccelOffset(686);
-//    mpu.setYAccelOffset(-3251);
-//    mpu.setZAccelOffset(1029);
-
-    sprintf((char *)text_buffer, "We got here\n");
-    HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
-
-
-    mpu.setDMPEnabled(true);
-    packetSize = mpu.dmpGetFIFOPacketSize();
-    fifoCount = mpu.getFIFOCount();
-
-    sprintf((char *)text_buffer, "done things\n");
-    HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
 
     /* USER CODE END 2 */
 
@@ -185,62 +152,13 @@ int drone_main(void)
     /* USER CODE BEGIN WHILE */
     HAL_Delay(100);
     volatile uint8_t _true = 1;
-
     while (_true)
     {
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
         comms.update();
-        HAL_Delay(10);
-        while (fifoCount < packetSize) {
-            //insert here your code
-            fifoCount = mpu.getFIFOCount();
-
-        }
-
-        if (fifoCount >= 1024) {
-
-            mpu.resetFIFO();
-            //Serial.println(F("FIFO overflow!"));
-
-        }
-        else{
-
-            if (fifoCount % packetSize != 0) {
-
-                mpu.resetFIFO();
-                fifoCount = mpu.getFIFOCount();
-
-            }
-            else{
-
-                while (fifoCount >= packetSize) {
-
-                    mpu.getFIFOBytes(fifoBuffer,packetSize);
-                    fifoCount -= packetSize;
-
-                }
-
-                mpu.dmpGetQuaternion(&q,fifoBuffer);
-                mpu.dmpGetGravity(&gravity,&q);
-                mpu.dmpGetYawPitchRoll(ypr,&q,&gravity);
-
-
-                char txt[32];
-
-                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "NUM: %u \t", a),100);
-                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "GYROX: %2.3f \t", ypr[1]*180/PI),100); // @suppress("Float formatting support")
-                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "GYROY: %2.3f \t", ypr[2]*180/PI),100); // @suppress("Float formatting support")
-                HAL_UART_Transmit(&huart1,(uint8_t*)txt,sprintf(txt, "GYROZ: %2.3f \n\r", ypr[0]*180/PI),100); // @suppress("Float formatting support")
-
-            }
-
-        }
-
-        a++;
-
-        HAL_Delay(50);
+        mpu.update();
     }
     return 0;
     /* USER CODE END 3 */
@@ -413,7 +331,7 @@ static void MX_USART1_UART_Init(void)
 
     /* USER CODE END USART1_Init 1 */
     huart1.Instance = USART1;
-    huart1.Init.BaudRate = 9600;
+    huart1.Init.BaudRate = 115200;
     huart1.Init.WordLength = UART_WORDLENGTH_8B;
     huart1.Init.StopBits = UART_STOPBITS_1;
     huart1.Init.Parity = UART_PARITY_NONE;
@@ -551,5 +469,4 @@ void assert_failed(uint8_t *file, uint32_t line)
 #endif /* USE_FULL_ASSERT */
 
 #endif
-
 

@@ -121,8 +121,10 @@ int controller_main(void)
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::controller controll(htim2, comms, hadc1);
+    EHECATL::joystick joystick(hadc1, comms);
     comms.setDeviceId(1);
     comms.setTargetId(2);
+    joystick.startup();
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -135,7 +137,7 @@ int controller_main(void)
 
         /* USER CODE BEGIN 3 */
 
-        controll.update();
+        joystick.update();
         comms.update();
         HAL_Delay(10);
     }

@@ -9,18 +9,28 @@
 #include <functional>
 #include <cpp_nrf24l01/include/nrf24l01plus/nrf24l01plus.hpp>
 #include <cstring>
+#include "COMMS_DEFINES.hpp"
 
+//the amound of commands supported by the communication class
+
+#ifndef COMMAND_COUNT
 #define COMMAND_COUNT 10
+#endif
 
 #define COMM_CALLBACK(functionname)  [&](uint8_t command, uint8_t * payload, uint8_t len) { this->functionname(command, payload, len);}
 
 namespace EHECATL {
 
+    /**
+     * Class used for communication between components/modules.
+     */
     class communication{
     private: //variables
+        //variables used for storing and accesing the functions
         unsigned int commands[COMMAND_COUNT] = {};
         std::function<void(uint8_t command, uint8_t * payload, uint8_t len)> callbacks[COMMAND_COUNT];
         unsigned int count = 0;
+
 
         nrf24l01::nrf24l01plus nrf;
         uint8_t this_device_id = 1;
@@ -28,124 +38,88 @@ namespace EHECATL {
         nrf24l01::address this_device_adress = {0x01, 0x02, 0x03, 0x04, 0x06};
         nrf24l01::address this_device_proxy_address = {0x02, 0x02, 0x03, 0x04, 0x06};
         nrf24l01::address target_device_adress = {0x01, 0x02, 0x03, 0x04, 0x05};
-        uint8_t receive_buffer[100] = {};
-        uint8_t send_buffer[200] = {};
 
-    public: //variables
+        //data receive buffer
+        uint8_t receive_buffer[100] = {};
+
+        //data send buffer
+        uint8_t send_buffer[200] = {};
 
     private: //functions
 
-        void setup_nrf(){
-            nrf.power(true);
-            nrf.write_register(nrf24l01::NRF_REGISTER::CONFIG, 0x0F);
+        /**
+         * Setup the nrf chip for communication
+         */
+        void setup_nrf();
 
-            nrf.rx_set_dynamic_payload_length(true);
-            nrf.auto_retransmit(5, 15);
-            nrf.write_register(nrf24l01::NRF_REGISTER::FEATURE,
-                               nrf24l01::NRF_FEATURE::EN_DPL | nrf24l01::NRF_FEATURE::EN_ACK_PAY);
+        /**
+         * Updates the nrf communication, checks if new messages are available, and if so it will execture the callbacks associated with them.
+         */
+        void update_nrf();
 
-            //high power low speed for long range
-            nrf.write_register(nrf24l01::NRF_REGISTER::RF_SETUP, nrf24l01::NRF_RF_SETUP::RF_DR_LOW | nrf24l01::NRF_RF_SETUP::RF_PWR);
-
-            nrf.write_register(nrf24l01::NRF_REGISTER::RF_SETUP, 0x26);
-            nrf.write_register(nrf24l01::NRF_REGISTER::SETUP_AW, 0x05);
-            nrf.channel(20);
-
-            nrf.rx_set_address(0, this_device_adress);
-            nrf.rx_set_address(1, this_device_proxy_address);
-            nrf.tx_set_address(target_device_adress);
-
-            nrf.rx_auto_acknowledgement(0, true);
-            nrf.rx_auto_acknowledgement(1, true);
-            nrf.rx_enabled(0, true);
-            nrf.rx_enabled(1, true);
-
-            nrf.mode(nrf.MODE_PRX);
-        }
-
-        void run() {
-
-
-            nrf.no_operation();
-
-            while ((nrf.last_status & nrf24l01::NRF_STATUS::RX_DR ) >0) {//there is data to read
-                nrf.no_operation();
-                HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-
-                uint8_t wd = nrf.rx_payload_width();
-                nrf.rx_read_payload(receive_buffer, wd);
-
-                if (nrf.last_status & nrf24l01::NRF_STATUS::TX_DS) {
-                    nrf.tx_flush();
-                }
-
-
-                nrf.write_register(nrf24l01::NRF_REGISTER::NRF_STATUS,
-                                   nrf24l01::NRF_STATUS::RX_DR | nrf24l01::NRF_STATUS::TX_DS);
-                nrf.no_operation();
-
-                onMessageReceived(receive_buffer[0], &receive_buffer[1], wd-1);
-            }
-        }
-
-        virtual int onMessageReceived(uint8_t command, uint8_t * payload, uint8_t len){
-            for (int i = 0; i < count; i++){
-                if (command == commands[i]){
-                    callbacks[i](command, payload, len);
-                }
-            }
-            return 1;
-        }
-
+        /**
+         * Function that is exetuted when a message is recieved, it checks if there is a callback for the command and executes those callbacks.
+         * @param command The command that is recieved
+         * @param payload The payload of the message
+         * @param len The length of the payload in bytes
+         * @return 1 if a callback has been found for the command, 0 if no callback was found.
+         */
+        virtual int onMessageReceived(uint8_t command, uint8_t * payload, uint8_t len);
 
     public:  //functions
-        communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce) : nrf(bus, csnPort, csn, cePort, ce) {
-            setup_nrf();
-        }
+        /**
+         * Constructor for the communication class
+         * @param bus A reference to a SPI handle from the stm32 HAL
+         * @param csnPort The HAL gpio port of the pin used for csn
+         * @param csn the pin number used for the csn pin
+         * @param cePort The HAL gpio port of the pin used for CE
+         * @param ce the pin number used for the ce pin
+         */
+        communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce);
 
-        int localMessage(uint8_t command, uint8_t * payload, uint8_t len){
-            return onMessageReceived(command, payload, len);
-        }
+        /**
+         * Send a message to the local communicator to communicate with other modules on the same device.
+         * @param command The command/identifier for the message
+         * @param payload The payload of the message
+         * @param len The byte length of the message
+         * @return 1 if the message has been used succesfully, 0 if no callback relating to that command has been found.
+         */
+        int localMessage(uint8_t command, uint8_t * payload, uint8_t len);
 
-        virtual int sendMessage(uint8_t command, uint8_t * payload, uint8_t len){
-            send_buffer[0] = command;
-            for(int i = 0; i < len; i++){
-                send_buffer[i+1] = payload[i];
-            }
-            nrf.no_operation();
-            return nrf.tx_send(send_buffer, len+1);
+        /**
+         * Send a message to the target device
+         * @param command The command/indentifier of the message
+         * @param payload The payload of the message
+         * @param len The length of the payload in bytes
+         * @return 1 if the message has been send correctly, 0 if a problem occured.
+         */
+        virtual int sendMessage(uint8_t command, uint8_t * payload, uint8_t len);
 
-        }
+        /**
+         * Set the id of the target device (the device you want to send messages to)
+         * @param id The id of the target device
+         */
+        void setTargetId(uint8_t id);
 
-        void setTargetId(uint8_t id){
-            target_device_id = id;
-            target_device_adress.address_bytes[4] = id * 0x05;
-            nrf.tx_set_address(target_device_adress);
-        }
+        /**
+         * Set the id of this device (the id on what you want to recieve on).
+         * @param id The id of this device
+         */
+        void setDeviceId(uint8_t id);
 
-        void setDeviceId(uint8_t id){
-            this_device_id = id;
-            this_device_adress.address_bytes[4] = id*0x05;
-            this_device_proxy_address.address_bytes[4] = id*0x05;
-            nrf.rx_set_address(0, this_device_adress);
-            nrf.rx_set_address(1, this_device_proxy_address);
-        }
+        /**
+         * Update the communications with other devices/recieve messages. Should be called often/in the main loop of the program.
+         */
+        void update();
 
-        void update(){
-            run();
-        }
-
-
-        int addNewCallback (uint8_t command, const std::function<void(uint8_t command, uint8_t * payload, uint8_t len)>& callback){
-            if(count < COMMAND_COUNT){
-                commands[count] = command;
-                callbacks[count] = callback;
-                count += 1;
-                return 1;
-            }
-            return -1;
-
-        }
+        /**
+         * Add a new callback to the communicator class. This can be a member function by callig it with a lambda, you can use the COMM_CALLBACK define for this functionality
+         *  addNewCallback(0, COMM_CALLBACK(memberfunction_name))
+         * @param command The command on wich the function should be executed
+         * @param callback The function that needs to be executed on the given command
+         * @return 1 if callback is added successfully, 0 if there is not enough space for more callbacks.
+         */
+        int addNewCallback (uint8_t command, const std::function<void(uint8_t command, uint8_t * payload, uint8_t len)>& callback);
     };
 
 }

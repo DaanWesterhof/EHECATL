@@ -7,21 +7,27 @@
 #include "stm32f4xx_hal.h"
 #include "communication.hpp"
 #include "PID.hpp"
+#include "Motors.hpp"
 
 namespace EHECATL{
+
+    /**
+     * Temporary test class, might repurpose it, currently used for leds
+     */
     class drone{
     private: //variables
-
         TIM_HandleTypeDef &timer;
         EHECATL::communication &communicator;
-
-
-
-
     public: //variables
 
     private: //functions
 
+        /**
+         * callback function for setting pwm speeds for the leds
+         * @param command
+         * @param data
+         * @param len
+         */
         void setPWMSpeeds(uint8_t command, uint8_t * data, uint8_t len){
             uint8_t printer[100] = {};
             timer.Instance->CCR2 = uint32_t(data[0]);
@@ -32,6 +38,13 @@ namespace EHECATL{
 
         }
 
+        /**
+         * Enable and start the pwm
+         * @param timer the timer you want to start
+         * @param channel its channel
+         * @param period the period
+         * @param pulse the pulse
+         */
         void setPWM(TIM_HandleTypeDef timer, uint32_t channel, uint32_t period, uint32_t pulse) {
             HAL_TIM_PWM_Stop(&timer, channel); // stop generation of pwm
             TIM_OC_InitTypeDef sConfigOC;
@@ -51,7 +64,7 @@ namespace EHECATL{
         drone(TIM_HandleTypeDef &timer, EHECATL::communication &communicator) : timer(timer), communicator(communicator) {
             setPWM(timer, TIM_CHANNEL_2, 255, 0);
             setPWM(timer, TIM_CHANNEL_3, 255, 0);
-            communicator.addNewCallback('0', COMM_CALLBACK(setPWMSpeeds));
+            communicator.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(setPWMSpeeds));
         }
 
         void update(){

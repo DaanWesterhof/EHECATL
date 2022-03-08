@@ -6,7 +6,7 @@
 #define EHECATL_PID_HPP
 
 #include "stm32f4xx_hal.h"
-#include "MPU6050.h"
+#include "mpu60x0.hpp"
 
 namespace EHECATL {
 
@@ -24,15 +24,7 @@ namespace EHECATL {
         uint32_t dt = 0;
         uint32_t last_dt = 0;
 
-        int calulateAction(int desired_value, int actual_value) {
-            dt = HAL_GetTick() - last_dt;
-            error = actual_value - desired_value;
-            sum_error += error;
-            int actie = (KP * error) + (KI * (sum_error * (dt / 1000))) + (KD * ((error - previous_error) / (dt / 1000)));
-            previous_error = error;
-            last_dt = HAL_GetTick();
-            return actie;
-        }
+        float calulateAction(float desired_value, float actual_value);
 
         PID(float kp, float ki, float kd, float bias) : KP(kp), KI(ki), KD(kd), bias(bias) {
 
@@ -43,29 +35,51 @@ namespace EHECATL {
 
     class PID_Controller {
     private:
-        int target_x_speed = 0;
-        int target_z_speed = 0;
-        int target_y_speed = 0;
-        int target_r_speed = 0;
+        communication &comms;
+        float target_x_angle = 0;
+        float target_y_angle = 0;
+        float target_r_speed = 0;
+        float target_y_speed = 0;
+        float last_r = 0;
+        float current_r_speed = 0;
         uint8_t motor_driver_speeds[4] = {};
 
-        PID y_pid = PID(0.3, 0, 0, 0);
+        int motor_change_values[5] = {};
+
         PID x_pid = PID(0.3, 0, 0, 0);
-        PID z_pid = PID(0.3, 0, 0, 0);
+        PID y_pid = PID(0.3, 0, 0, 0);
         PID r_pid = PID(0.3, 0, 0, 0);
+
+        /**
+         * Uses the PIDS to calculate new changes for the motor speeds
+         * @param x_angle Current X angle of the drone
+         * @param y_angle Current Y angle of the drone
+         * @param r_speed Current rotating speed of the drone
+         */
+        void updatePids(float x_angle, float y_angle, float r_speed);
 
 //base = y value
 
     public:
+        PID_Controller(communication &comms);
 
-        void update(int x_speed, int z_speed, int y_speed, int r_speed){
-            int x, y, z, r = 0;
-            x = x_pid.calulateAction(x_speed, target_x_speed);
-            y = y_pid.calulateAction(y_speed, target_y_speed);
-            z = z_pid.calulateAction(z_speed, target_z_speed);
-            r = r_pid.calulateAction(r_speed, target_r_speed);
-        }
 
+
+        /**
+         * Function callback called by the communicator if new mpu6050 angles have been recieved
+         * @param command The commond with wich the function is called
+         * @param data the payload/data of the message, should be the xy angles of the mpu6050 and the z rotating speed
+         * @param len the length of the payload in bytes
+         */
+        void GyroAnglesRecieved(uint8_t command, uint8_t * data, uint8_t len);
+
+        /**
+         * Function callback called by the communicator if new target angles have been recieved from the controller
+         * @param command The cmmand with wich the callback was called
+         * @param data the payload/data of the message.
+         * @param len the length of the payload in bytes
+         */
+        void newTargetAngles(uint8_t command, uint8_t * data, uint8_t len);
     };
 
 }
