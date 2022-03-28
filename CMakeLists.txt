@@ -26,7 +26,6 @@ if (controller_build)
     add_compile_definitions(controller_compile)
 endif(controller_build)
 
-
 #Uncomment for hardware floating point
 #add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 #add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)
@@ -55,13 +54,13 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Core/Inc/base Core/Inc/controller Core/Inc/drone Core/Inc/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include)
+        include_directories(Core/Base/Inc Core/Drone/Inc Core/Drone/Inc/peripherals Core/Controller/Inc Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/stm32_hal_dshot/inc  Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F401xC)
 
 file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*")
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F401CCUX_FLASH.ld)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F401CCUX_FLASH.ld Core/Drone/Inc/Baromenter.hpp)
 
 add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
