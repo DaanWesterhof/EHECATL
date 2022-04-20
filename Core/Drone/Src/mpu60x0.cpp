@@ -6,8 +6,7 @@
 
 namespace EHECATL{
 
-    MPU_GYRO::MPU_GYRO(const UART_HandleTypeDef &huart1, const I2C_HandleTypeDef &hi2C1, communication &comms)
-            : huart1(huart1), hi2c1(hi2C1), comms(comms) {}
+    MPU_GYRO::MPU_GYRO(UART_HandleTypeDef &huart1, I2C_HandleTypeDef &hi2C1, communication &comms): huart1(huart1), hi2c1(hi2C1), comms(comms) {}
 
     void MPU_GYRO::setOffsets() {
         uint8_t text_buffer[100];
@@ -102,7 +101,6 @@ namespace EHECATL{
         angles[0] = x;
         angles[1] = y;
         angles[2] = z;
-
 
         comms.localMessage(MSG_COMMANDS::CURRENT_ANGLES, (uint8_t *)angles, 3*4);
     }

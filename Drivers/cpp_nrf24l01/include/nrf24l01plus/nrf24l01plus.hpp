@@ -15,8 +15,8 @@
 //#include <cmsis_os2.h>
 #include "definitions.hpp"
 #include "address.hpp"
-extern UART_HandleTypeDef huart1;
-extern SPI_HandleTypeDef hspi1;
+#include "spi.h"
+#include "usart.h"
 
 namespace nrf24l01 {
 

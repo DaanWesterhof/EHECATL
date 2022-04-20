@@ -6,10 +6,7 @@
  *      Author: mokhwasomssi
  *
  */
-
-
-#include "../inc/dshot.h"
-
+#include "dshot.h"
 
 /* Variables */
 static uint32_t motor1_dmabuffer[DSHOT_DMA_BUFFER_SIZE];

@@ -16,7 +16,7 @@ namespace EHECATL{
     class Updater{
         DroneComponent* components[UPDATER_COUNT];
 
-        void run(){
+        [[noreturn]] void run(){
             while(true){
                 for(int i = 0; i < UPDATER_COUNT; i++){
                     components[i]->update();

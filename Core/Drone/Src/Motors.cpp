@@ -22,7 +22,7 @@ namespace EHECATL{
         }else{
             if(data[0] != current_offset){
                 int dif = data[0] - current_offset;
-                current_offset = dif;
+                current_offset = data[0];
                 motor_speeds[0] += dif;
                 motor_speeds[1] += dif;
                 motor_speeds[2] += dif;
@@ -34,8 +34,8 @@ namespace EHECATL{
 
     void Motors::setBaseSpeed(uint8_t command, uint8_t *data, uint8_t len){
         current_height = ((float *)data)[0];
+        int diff = height_pid.calulateAction(desired_height, current_height);
         if(PID_Controll_Speed){
-            int diff = height_pid.calulateAction(desired_height, current_height);
             motor_speeds[0] += diff;
             motor_speeds[1] += diff;
             motor_speeds[2] += diff;
@@ -49,7 +49,8 @@ namespace EHECATL{
         comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
         comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(setBaseSpeed));
         dshot_setTimers(&htim2, TIM_CHANNEL_1 ,&htim2, TIM_CHANNEL_2, &htim3, TIM_CHANNEL_1, &htim4, TIM_CHANNEL_1);
-        dshot_init(DSHOT600);
+        dshot_type_e type = dshot_type_e::DSHOT600;
+        dshot_init(type);
     }
 
 

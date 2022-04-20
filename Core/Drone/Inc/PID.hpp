@@ -24,6 +24,12 @@ namespace EHECATL {
         uint32_t dt = 0;
         uint32_t last_dt = 0;
 
+        /**
+         * Calulcates the output value of the PID
+         * @param desired_value The value you wish to achieve
+         * @param actual_value The value currently achieved
+         * @return The value that should be applied as a change or as new controll value to work torwards the desired value.
+         */
         float calulateAction(float desired_value, float actual_value);
 
         PID(float kp, float ki, float kd, float bias) : KP(kp), KI(ki), KD(kd), bias(bias) {
@@ -43,7 +49,6 @@ namespace EHECATL {
 
         float old_r_pos = 0;
         int hal_last_tick = 0;
-        uint8_t motor_driver_speeds[4] = {};
 
         int motor_change_values[5] = {};
 
@@ -77,7 +82,7 @@ namespace EHECATL {
         /**
          * Function callback called by the communicator if new target angles have been recieved from the controller
          * @param command The cmmand with wich the callback was called
-         * @param data the payload/data of the message.
+         * @param data the payload/data of the message. Should be a pointer to a list with 4 uint8_t's
          * @param len the length of the payload in bytes
          */
         void newTargetAngles(uint8_t command, uint8_t * data, uint8_t len);

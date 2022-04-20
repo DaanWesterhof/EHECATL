@@ -7,7 +7,7 @@
 
 #include "stm32f4xx_hal.h"
 #include <functional>
-#include <cpp_nrf24l01/include/nrf24l01plus/nrf24l01plus.hpp>
+#include "nrf24l01plus/nrf24l01plus.hpp"
 #include <cstring>
 #include "COMMS_DEFINES.hpp"
 

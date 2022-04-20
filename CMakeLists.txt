@@ -54,13 +54,29 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-        include_directories(Core/Base/Inc Core/Drone/Inc Core/Drone/Inc/peripherals Core/Controller/Inc Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/stm32_hal_dshot/inc  Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
+
+include_directories(Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/dshot_lib/inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
+if (drone_build)
+    include_directories(Core/Base/Inc Core/Drone/Inc Core/Drone/Inc/peripherals Core/Controller/Inc Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/dshot_lib/inc Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
+endif (drone_build)
+if (controller_build)
+    include_directories(Core/Base/Inc Core/Controller/Inc Core/Controller/Inc/peripherals Core/Controller/Inc Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/dshot_lib/inc  Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
+endif(controller_build)
+
+
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F401xC)
 
-file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*")
+file(GLOB_RECURSE SOURCES "Core/Src/*.*")
+if (drone_build)
+    file(GLOB_RECURSE SOURCES "Core/Src/*.*" "Core/Startup/*.*" "Core/Inc/*.*" "Core/Base/*.*" "Core/Drone/*.*" "Drivers/*.*")
+endif (drone_build)
+if (controller_build)
+    file(GLOB_RECURSE SOURCES "Core/Src/*.*" "Core/Startup/*.*" "Core/Inc/*.*" "Core/Base/*.*" "Core/Controller/*.*" "Drivers/*.*")
+endif (controller_build)
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F401CCUX_FLASH.ld Core/Drone/Inc/Baromenter.hpp)
+
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F401CCUX_FLASH.ld)
 
 add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)

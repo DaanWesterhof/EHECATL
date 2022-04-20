@@ -23,16 +23,32 @@ namespace EHECATL {
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
 
     public:
-        Motors(communication &comms);
+        explicit Motors(communication &comms);
 
         /**
-         * Set the new motor speeds.
+         * Callback function for the communication system. Sets the motor speeds for rotations based on data from the joysticks and mpu6050.
          * @param command The command used to call this function
-         * @param data The payload of the message, Should be the desired change is speed per motor and base speed.
+         * @param data The payload of the message, Should be the desired change of speed per motor and base speed, should be a pointer to a list of 4 ints.
          * @param len the length of the payload/data in bytes
          */
         void setMotorSpeedsForRotations(uint8_t command, uint8_t * data, uint8_t len);
+
+        /**
+         * Callback function for the communication system. Sets the motor speeds when not modifying the Y speed.
+         * It listens to data from the barometer, and uses a PID to calulate the base speed to stay at the desired height.
+         * @param command The command used to call this function
+         * @param data The payload of the callback message, should be a pointer to (a list of) 1 float.
+         * @param len the length of the payload/data in bytes
+         */
         void setBaseSpeed(uint8_t command, uint8_t * data, uint8_t len);
+
+        /**
+         * Callback function for the communication system. Sets the motor speeds for vertical movement based on user joystick controll.
+         * @param command The command used to call this function
+         * @param data The payload of the callback message, should be a pointer to an Int value.
+         * @param len The length of the payload.
+         */
+        void setMotorSpeedsYSpeed(uint8_t command, uint8_t *data, uint8_t len);
 
     };
 

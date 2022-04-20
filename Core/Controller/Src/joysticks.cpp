@@ -12,8 +12,8 @@ namespace EHECATL{
     void joystick::sendSticks() {
         data[0] = float((Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200)/4094.0*5)-middle_values[0]);
         data[1] = float((Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200)/4094.0*5)-middle_values[1]);
-        data[2] = float((Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200)/4094.0*1)-middle_values[2]);
-        data[3] = float((Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200)/4094.0*20)-middle_values[3]);
+        data[2] = 1024.0-float((Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200)/4094.0*1)-middle_values[2]);
+        data[3] = 1024.0-float((Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200)/4094.0*20)-middle_values[3]);
         comms.sendMessage(MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t*)data, 16);
     }
 

@@ -2,38 +2,39 @@
 // Created by daang on 28-3-2022.
 //
 
-#ifndef EHECATL_BAROMENTER_HPP
-#define EHECATL_BAROMENTER_HPP
+#ifndef EHECATL_BAROMETER_HPP
+#define EHECATL_BAROMETER_HPP
 
 #include "bmp3.h"
 #include "stm32f4xx_hal.h"
 #include "i2c.h"
 #include "communication.hpp"
+#include "usart.h"
 static uint8_t dev_addr;
 
 
 /*!
- * I2C read function map to COINES platform
+ * I2C read function map to STM32 HAL platform
  */
 BMP3_INTF_RET_TYPE bmp3_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    return HAL_I2C_Mem_Read(hi2c3, dev_addr, reg_addr, 1, reg_data, len, 0);
+    return HAL_I2C_Mem_Read(&hi2c3, dev_addr, reg_addr, 1, reg_data, len, 100);
 }
 
 /*!
- * I2C write function map to COINES platform
+ * I2C write function map to STM32 HAL platform
  */
 BMP3_INTF_RET_TYPE bmp3_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
     uint8_t * temp_thing = (uint8_t *)reg_data;
-    return HAL_I2C_Mem_Write(hi2c3, dev_addr, reg_addr, 1, temp_thing, len, 0);
+    return HAL_I2C_Mem_Write(&hi2c3, dev_addr, reg_addr, 1, temp_thing, len, 100);
 
 }
 
 /*!
- * Delay function map to COINES platform
+ * Delay function map to STM32 HAL platform
  */
 void bmp3_delay_us(uint32_t period, void *intf_ptr)
 {
@@ -74,7 +75,7 @@ namespace EHECATL{
         struct bmp3_dev dev;
         struct bmp3_data data = { 0 };
         double b_data[5] = {};
-        double sum[1] = {};
+        double sum = 0;
 
         struct bmp3_settings settings = { 0 };
         struct bmp3_status status = { { 0 } };
@@ -113,6 +114,9 @@ namespace EHECATL{
         }
 
 
+        /**
+         * Update function of the barometer, Takes the moving average of 5 measurements and sends it to the communication system.
+         */
         void update(){
             rslt = bmp3_get_status(&status, &dev);
             /* Read temperature and pressure data iteratively based on data ready interrupt */
@@ -124,7 +128,7 @@ namespace EHECATL{
                  * BMP3_TEMP       : To read only temperature data
                  * BMP3_PRESS      : To read only pressure data
                  */
-                rslt = bmp3_get_sensor_data(BMP3_PRESS_TEMP, &data, &dev);
+                rslt = bmp3_get_sensor_data(BMP3_PRESS, &data, &dev);
 
                 /* NOTE : Read status register again to clear data ready interrupt status */
                 rslt = bmp3_get_status(&status, &dev);
@@ -138,13 +142,13 @@ namespace EHECATL{
                 count = 0;
             }
             if(sending) {
-                sum[0] = 0;
-                for (auto & val : b_data){
-                    sum[0] += val;
+                sum = 0;
+                for (int i = 0; i < 5; i++){
+                    sum += b_data[i];
                 }
-                sum[0] = sum[0]/5.0;
+                sum = sum/5.0;
 
-                comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) sum, 16);
+                comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 16);
             }
         }
     };
@@ -152,4 +156,4 @@ namespace EHECATL{
 
 
 
-#endif //EHECATL_BAROMENTER_HPP
+#endif //EHECATL_BAROMETER_HPP

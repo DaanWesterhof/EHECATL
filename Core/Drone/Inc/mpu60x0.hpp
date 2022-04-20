@@ -14,8 +14,8 @@ namespace EHECATL{
 
     class MPU_GYRO{
         //I2cdev MPU6050
-        UART_HandleTypeDef huart1;
-        I2C_HandleTypeDef hi2c1;
+        UART_HandleTypeDef &huart1;
+        I2C_HandleTypeDef &hi2c1;
 
         communication & comms;
 
@@ -35,7 +35,7 @@ namespace EHECATL{
         float z;
         float angles[3];
 
-        MPU_GYRO(const UART_HandleTypeDef &huart1, const I2C_HandleTypeDef &hi2C1, communication &comms);
+        MPU_GYRO(UART_HandleTypeDef &huart1, I2C_HandleTypeDef &hi2C1, communication &comms);
 
 
         /**
