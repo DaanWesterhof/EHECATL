@@ -131,14 +131,14 @@ int drone_main(void)
     EHECATL::ErrorPrinter error_printer(comms, huart1);
     EHECATL::PID_Controller pic_controller(comms);
     EHECATL::Motors motors(comms);
-    //EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
+    EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
 
 
 
-//    mpu.init();
-//    mpu.setOffsets();
+    mpu.init();
+    mpu.setOffsets();
     comms.setDeviceId(2);
     comms.setTargetId(1);
 
@@ -155,7 +155,7 @@ int drone_main(void)
 
         /* USER CODE BEGIN 3 */
         comms.update();
-        //mpu.update();
+        mpu.update();
         barometer.update();
 
     }

@@ -5,71 +5,79 @@
 #ifndef EHECATL_BAROMETER_HPP
 #define EHECATL_BAROMETER_HPP
 
-#include "bmp3.h"
-#include "common_porting.h"
+
 #include "stm32f4xx_hal.h"
 #include "i2c.h"
 #include "communication.hpp"
 #include "usart.h"
+#include "common_porting.h"
 static uint8_t dev_addr;
 static uint8_t GTXBuffer[512];
 static uint8_t GRXBuffer[2048];
-
-/*!
- * I2C read function map to STM32 HAL platform
- */
-BMP3_INTF_RET_TYPE SensorAPI_I2Cx_Read(uint8_t subaddress, uint8_t *pBuffer, uint32_t ReadNumbr, void *intf_ptr)
-{
-    uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    uint16_t DevAddress = dev_addr << 1;
-
-// send register address
-    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, &subaddress, 1, 100);
-    HAL_I2C_Master_Receive(&hi2c3, dev_addr, pBuffer, ReadNumbr, 100);
-    return 0;
-}
-
-/*!
- * I2C write function map to STM32 HAL platform
- */
-int8_t SensorAPI_I2Cx_Write(uint8_t subaddress, const uint8_t *pBuffer, uint32_t WriteNumbr, void *intf_ptr)
-{
-    uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    uint16_t DevAddress = dev_addr << 1;
-
-    GTXBuffer[0] = subaddress;
-    memcpy(&GTXBuffer[1], pBuffer, WriteNumbr);
-
-// send register address
-    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, GTXBuffer, WriteNumbr, 100);
-    return 0;
-}
-
-
-/*!
- * Delay function map to STM32 HAL platform
- */
-void bmp3_delay_us(uint32_t period, void *intf_ptr)
-{
-    HAL_Delay(period);
-}
+//
+///*!
+// * I2C read function map to STM32 HAL platform
+// */
+//BMP3_INTF_RET_TYPE SensorAPI_I2Cx_Read(uint8_t subaddress, uint8_t *pBuffer, uint32_t ReadNumbr, void *intf_ptr)
+//{
+//    uint8_t dev_addr = *(uint8_t*)intf_ptr;
+//    uint16_t DevAddress = dev_addr << 1;
+//
+//// send register address
+//    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, &subaddress, 1, 100);
+//    HAL_I2C_Master_Receive(&hi2c3, dev_addr, pBuffer, ReadNumbr, 100);
+//    return 0;
+//}
+//
+///*!
+// * I2C write function map to STM32 HAL platform
+// */
+//int8_t SensorAPI_I2Cx_Write(uint8_t subaddress, const uint8_t *pBuffer, uint32_t WriteNumbr, void *intf_ptr)
+//{
+//    uint8_t dev_addr = *(uint8_t*)intf_ptr;
+//    uint16_t DevAddress = dev_addr << 1;
+//
+//    GTXBuffer[0] = subaddress;
+//    memcpy(&GTXBuffer[1], pBuffer, WriteNumbr);
+//
+//// send register address
+//    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, GTXBuffer, WriteNumbr, 100);
+//    return 0;
+//}
+//
+//
+///*!
+// * Delay function map to STM32 HAL platform
+// */
+//void bmp3_delay_us(uint32_t period, void *intf_ptr)
+//{
+//    HAL_Delay(period);
+//}
 
 BMP3_INTF_RET_TYPE bmp3_interface_init(struct bmp3_dev *bmp3, uint8_t intf)
 {
     int8_t rslt = BMP3_OK;
-    if (bmp3 != NULL)
-    {
 
+    if(bmp3 != NULL)
+    {
         /* Bus configuration : I2C */
         if (intf == BMP3_I2C_INTF)
         {
-            dev_addr = BMP3_ADDR_I2C_PRIM;
-            bmp3->read = SensorAPI_I2Cx_Read;
-            bmp3->write = SensorAPI_I2Cx_Write;
+            dev_addr = BMP3_ADDR_I2C_SEC;
+            bmp3->read = &SensorAPI_I2Cx_Read;
+            bmp3->write = &SensorAPI_I2Cx_Write;
             bmp3->intf = BMP3_I2C_INTF;
         }
+            /* Bus configuration : SPI */
+        else if (intf == BMP3_SPI_INTF)
+        {
+            dev_addr = 0;
+//            bmp3->read = SensorAPI_SPIx_Read;
+//            bmp3->write = SensorAPI_SPIx_Write;
+            bmp3->intf = BMP3_SPI_INTF;
+        }
 
-        bmp3->delay_us = bmp3_delay_us;
+        bmp3->delay_us = &bmp3_delay_us;
         bmp3->intf_ptr = &dev_addr;
     }
     else
