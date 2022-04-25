@@ -6,32 +6,45 @@
 #define EHECATL_BAROMETER_HPP
 
 #include "bmp3.h"
+#include "common_porting.h"
 #include "stm32f4xx_hal.h"
 #include "i2c.h"
 #include "communication.hpp"
 #include "usart.h"
 static uint8_t dev_addr;
-
+static uint8_t GTXBuffer[512];
+static uint8_t GRXBuffer[2048];
 
 /*!
  * I2C read function map to STM32 HAL platform
  */
-BMP3_INTF_RET_TYPE bmp3_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
+BMP3_INTF_RET_TYPE SensorAPI_I2Cx_Read(uint8_t subaddress, uint8_t *pBuffer, uint32_t ReadNumbr, void *intf_ptr)
 {
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    return HAL_I2C_Mem_Read(&hi2c3, dev_addr, reg_addr, 1, reg_data, len, 100);
+    uint16_t DevAddress = dev_addr << 1;
+
+// send register address
+    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, &subaddress, 1, 100);
+    HAL_I2C_Master_Receive(&hi2c3, dev_addr, pBuffer, ReadNumbr, 100);
+    return 0;
 }
 
 /*!
  * I2C write function map to STM32 HAL platform
  */
-BMP3_INTF_RET_TYPE bmp3_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr)
+int8_t SensorAPI_I2Cx_Write(uint8_t subaddress, const uint8_t *pBuffer, uint32_t WriteNumbr, void *intf_ptr)
 {
     uint8_t dev_addr = *(uint8_t*)intf_ptr;
-    uint8_t * temp_thing = (uint8_t *)reg_data;
-    return HAL_I2C_Mem_Write(&hi2c3, dev_addr, reg_addr, 1, temp_thing, len, 100);
+    uint16_t DevAddress = dev_addr << 1;
 
+    GTXBuffer[0] = subaddress;
+    memcpy(&GTXBuffer[1], pBuffer, WriteNumbr);
+
+// send register address
+    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, GTXBuffer, WriteNumbr, 100);
+    return 0;
 }
+
 
 /*!
  * Delay function map to STM32 HAL platform
@@ -51,8 +64,8 @@ BMP3_INTF_RET_TYPE bmp3_interface_init(struct bmp3_dev *bmp3, uint8_t intf)
         if (intf == BMP3_I2C_INTF)
         {
             dev_addr = BMP3_ADDR_I2C_PRIM;
-            bmp3->read = bmp3_i2c_read;
-            bmp3->write = bmp3_i2c_write;
+            bmp3->read = SensorAPI_I2Cx_Read;
+            bmp3->write = SensorAPI_I2Cx_Write;
             bmp3->intf = BMP3_I2C_INTF;
         }
 
@@ -94,8 +107,23 @@ namespace EHECATL{
              *         For I2C : BMP3_I2C_INTF
              *         For SPI : BMP3_SPI_INTF
              */
+
             rslt = bmp3_interface_init(&dev, BMP3_I2C_INTF);
+            if(rslt != BMP3_OK){
+                char msg[100];
+                sprintf(msg, "bad interface init\n");
+                comms.localMessage(MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *)msg, strlen(msg));
+            }
+
+            bmp3_soft_reset(&dev);
+
             rslt = bmp3_init(&dev);
+            if(rslt != BMP3_OK){
+                char msg[100];
+                sprintf(msg, "bad bmp init: %i \n", rslt);
+                comms.localMessage(MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *)msg, strlen(msg));
+                while(1){};
+            }
 
             settings.int_settings.drdy_en = BMP3_ENABLE;
             settings.press_en = BMP3_ENABLE;

@@ -34,7 +34,7 @@ namespace EHECATL{
             timer.Instance->CCR3 = uint32_t(data[1]);
 
             sprintf((char *)printer, "rX:%u rY:%u lX:%u lY:%u\n", uint8_t(data[0]), uint8_t(data[1]), uint8_t(data[2]), uint8_t(data[3]));
-            HAL_UART_Transmit(&huart1, (uint8_t*)printer, strlen((char *)printer), 100);
+            HAL_UART_Transmit(&huart1, (char *)printer, strlen((char *)printer), 100);
 
         }
 

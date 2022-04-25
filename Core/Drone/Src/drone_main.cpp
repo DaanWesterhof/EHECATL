@@ -33,6 +33,7 @@
 #include "drone.hpp"
 #include "Barometer.hpp"
 #include "DataPrinter.hpp"
+#include "ErrorPrinter.hpp"
 #include <cstdio>
 #include <cstring>
 
@@ -121,20 +122,23 @@ int drone_main(void)
     HAL_Delay(3000);
     uint8_t text_buffer[100];
     sprintf((char *)text_buffer, "Het apparaat is opgestart\n");
-    HAL_UART_Transmit(&huart1, text_buffer, strlen((char*)text_buffer), 100);
+    HAL_UART_Transmit(&huart1, (char *)text_buffer, strlen((char*)text_buffer), 100);
     HAL_Delay(1000);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
+    EHECATL::ErrorPrinter error_printer(comms, huart1);
     EHECATL::PID_Controller pic_controller(comms);
     EHECATL::Motors motors(comms);
-    EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
+    //EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
 
-    mpu.init();
-    mpu.setOffsets();
+
+
+//    mpu.init();
+//    mpu.setOffsets();
     comms.setDeviceId(2);
     comms.setTargetId(1);
 
@@ -151,7 +155,7 @@ int drone_main(void)
 
         /* USER CODE BEGIN 3 */
         comms.update();
-        mpu.update();
+        //mpu.update();
         barometer.update();
 
     }

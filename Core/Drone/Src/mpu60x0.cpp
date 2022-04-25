@@ -55,20 +55,20 @@ namespace EHECATL{
 
         uint8_t val = mpu.dmpInitialize();
         if(val == 0){
-            HAL_UART_Transmit(&huart1, text_buffer, sprintf((char *)text_buffer, "Dmp Initialised\n"), 100);
+            HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "Dmp Initialised\n"), 100);
 
         }else{
 
-            HAL_UART_Transmit(&huart1, text_buffer, sprintf((char *)text_buffer, "Something went wrong: %u\n", val), 100);
+            HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "Something went wrong: %u\n", val), 100);
         }
-        HAL_UART_Transmit(&huart1, text_buffer, sprintf((char *)text_buffer, "We got here\n"), 100);
+        HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "We got here\n"), 100);
 
 
         mpu.setDMPEnabled(true);
         packetSize = mpu.dmpGetFIFOPacketSize();
         fifoCount = mpu.getFIFOCount();
 
-        HAL_UART_Transmit(&huart1, text_buffer, sprintf((char *)text_buffer, "done things\n"), 100);
+        HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "done things\n"), 100);
     }
 
     void MPU_GYRO::update() {

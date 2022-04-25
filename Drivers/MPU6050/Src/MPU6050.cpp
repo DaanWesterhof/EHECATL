@@ -3883,7 +3883,7 @@ void MPU6050::PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops, UART_Ha
 
     uint8_t SaveAddress = (ReadAddress == 0x3B)?((getDeviceID() < 0x38 )? 0x06:0x77):0x13;
     uint8_t text_buffer[100];
-    HAL_UART_Transmit(uart,(uint8_t*)text_buffer,sprintf((char*)text_buffer, "Adress = %02X", getDeviceID()),100);
+    HAL_UART_Transmit(uart, (char *)text_buffer,sprintf((char*)text_buffer, "Adress = %02X", getDeviceID()),100);
 
     int16_t  Data;
     float Reading;
@@ -3894,7 +3894,7 @@ void MPU6050::PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops, UART_Ha
     uint32_t eSum;
     uint16_t gravity = 8192; // prevent uninitialized compiler warning
     if (ReadAddress == 0x3B) gravity = 16384 >> getFullScaleAccelRange();
-    HAL_UART_Transmit(uart,(uint8_t*)text_buffer,sprintf((char*)text_buffer, ">"),100);
+    HAL_UART_Transmit(uart, (char *)text_buffer,sprintf((char*)text_buffer, ">"),100);
     for (int i = 0; i < 3; i++) {
         I2Cdev_readWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data, 100); // reads 1 or more 16 bit integers (Word)
         Reading = Data;
@@ -3925,13 +3925,13 @@ void MPU6050::PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops, UART_Ha
             }
             if((c == 99) && eSum > 1000){						// Error is still to great to continue
                 c = 0;
-                HAL_UART_Transmit(uart,(uint8_t*)text_buffer,sprintf((char*)text_buffer, "*"),100);
+                HAL_UART_Transmit(uart,(char *)text_buffer,sprintf((char*)text_buffer, "*"),100);
             }
             if((eSum * ((ReadAddress == 0x3B)?.05: 1)) < 5) eSample++;	// Successfully found offsets prepare to  advance
             if((eSum < 100) && (c > 10) && (eSample >= 10)) break;		// Advance to next Loop
             HAL_Delay(1);
         }
-        HAL_UART_Transmit(uart,(uint8_t*)text_buffer,sprintf((char*)text_buffer, "."),100);
+        HAL_UART_Transmit(uart,(char *)text_buffer,sprintf((char*)text_buffer, "."),100);
         kP *= .75;
         kI *= .75;
         for (int i = 0; i < 3; i++){

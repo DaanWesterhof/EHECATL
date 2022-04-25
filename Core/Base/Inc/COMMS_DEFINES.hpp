@@ -16,6 +16,7 @@ namespace EHECATL{
         static inline constexpr const uint8_t CURRENT_ANGLES = 3;
         static inline constexpr const uint8_t MOTOR_DIFFERENCE = 4;
         static inline constexpr const uint8_t NEW_BAROMETER_DATA = 5;
+        static inline constexpr const uint8_t ERROR_MESSAGE = 6;
 
     };
 //
