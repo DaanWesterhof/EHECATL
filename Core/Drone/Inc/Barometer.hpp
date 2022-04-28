@@ -14,45 +14,7 @@
 static uint8_t dev_addr;
 static uint8_t GTXBuffer[512];
 static uint8_t GRXBuffer[2048];
-//
-///*!
-// * I2C read function map to STM32 HAL platform
-// */
-//BMP3_INTF_RET_TYPE SensorAPI_I2Cx_Read(uint8_t subaddress, uint8_t *pBuffer, uint32_t ReadNumbr, void *intf_ptr)
-//{
-//    uint8_t dev_addr = *(uint8_t*)intf_ptr;
-//    uint16_t DevAddress = dev_addr << 1;
-//
-//// send register address
-//    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, &subaddress, 1, 100);
-//    HAL_I2C_Master_Receive(&hi2c3, dev_addr, pBuffer, ReadNumbr, 100);
-//    return 0;
-//}
-//
-///*!
-// * I2C write function map to STM32 HAL platform
-// */
-//int8_t SensorAPI_I2Cx_Write(uint8_t subaddress, const uint8_t *pBuffer, uint32_t WriteNumbr, void *intf_ptr)
-//{
-//    uint8_t dev_addr = *(uint8_t*)intf_ptr;
-//    uint16_t DevAddress = dev_addr << 1;
-//
-//    GTXBuffer[0] = subaddress;
-//    memcpy(&GTXBuffer[1], pBuffer, WriteNumbr);
-//
-//// send register address
-//    HAL_I2C_Master_Transmit(&hi2c3, dev_addr, GTXBuffer, WriteNumbr, 100);
-//    return 0;
-//}
-//
-//
-///*!
-// * Delay function map to STM32 HAL platform
-// */
-//void bmp3_delay_us(uint32_t period, void *intf_ptr)
-//{
-//    HAL_Delay(period);
-//}
+
 
 BMP3_INTF_RET_TYPE bmp3_interface_init(struct bmp3_dev *bmp3, uint8_t intf)
 {
@@ -97,6 +59,12 @@ namespace EHECATL{
         struct bmp3_data data = { 0 };
         double b_data[5] = {};
         double sum = 0;
+
+        double current_altitude = 0;
+        double speed = 0;
+
+        double last_altitude;
+        double last_ticks = 0;
 
         struct bmp3_settings settings = { 0 };
         struct bmp3_status status = { { 0 } };
@@ -150,6 +118,29 @@ namespace EHECATL{
         }
 
 
+        void setBaseHeight(){
+            double base_height = 0;
+            for(int i = 0; i < 10; i++) {
+                rslt = bmp3_get_status(&status, &dev);
+                /* Read temperature and pressure data iteratively based on data ready interrupt */
+                if ((rslt == BMP3_OK) && (status.intr.drdy == BMP3_ENABLE)) {
+                    rslt = bmp3_get_sensor_data(BMP3_PRESS, &data, &dev);
+
+                    /* NOTE : Read status register again to clear data ready interrupt status */
+                    rslt = bmp3_get_status(&status, &dev);
+                    base_height += data.pressure;
+                }
+            }
+            base_height = base_height / 10.0;
+            comms.localMessage(MSG_COMMANDS::BAROMETER_BASE_HEIGHT, (uint8_t *) &base_height, 16);
+        }
+
+
+        double pressureToAltitude(double pressure){
+            return 44330.0 * (1.0 - pow(pressure / 1013.25, 0.1903));
+        }
+
+
         /**
          * Update function of the barometer, Takes the moving average of 5 measurements and sends it to the communication system.
          */
@@ -179,11 +170,15 @@ namespace EHECATL{
             }
             if(sending) {
                 sum = 0;
-                for (int i = 0; i < 5; i++){
-                    sum += b_data[i];
+                for (double i : b_data){
+                    sum += i;
                 }
                 sum = sum/5.0;
 
+                current_altitude = pressureToAltitude(sum);
+                speed = (current_altitude - last_altitude) / (HAL_GetTick() - last_ticks);
+                last_ticks = HAL_GetTick();
+                comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)&speed, 16);
                 comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 16);
             }
         }

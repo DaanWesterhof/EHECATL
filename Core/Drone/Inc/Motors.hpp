@@ -18,7 +18,13 @@ namespace EHECATL {
         bool PID_Controll_Speed;
         float desired_height = 0;
         float current_height = 0;
+        float base_height = 0;
         communication &comms;
+
+        int land_speed = -5;
+
+        bool isFlying;
+
 
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
 
@@ -49,6 +55,10 @@ namespace EHECATL {
          * @param len The length of the payload.
          */
         void setMotorSpeedsYSpeed(uint8_t command, uint8_t *data, uint8_t len);
+
+        void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
+
+        void recieveBaseHeight(uint8_t command, uint8_t *data, uint8_t len);
 
     };
 

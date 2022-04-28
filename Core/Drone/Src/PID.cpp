@@ -16,6 +16,18 @@ namespace EHECATL{
         return actie;
     }
 
+    void PID_Controller::StateRecieved(uint8_t command, uint8_t *data, uint8_t len){
+        DRONE_MODE state = data[0];
+        switch(state){
+            case DRONE_MODES::LANDING:
+                target_x_angle = 0;
+                target_y_angle = 0;
+                target_r_speed = 0;
+                target_y_speed = 0;
+                isFlying = false;
+        }
+    }
+
     PID_Controller::PID_Controller(communication &comms) : comms(comms) {
         comms.addNewCallback(MSG_COMMANDS::CURRENT_ANGLES, COMM_CALLBACK(GyroAnglesRecieved));
         comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(newTargetAngles));
@@ -54,8 +66,8 @@ namespace EHECATL{
     }
 
     void PID_Controller::GyroAnglesRecieved(uint8_t command, uint8_t *data, uint8_t len) {
-        float * gdata = (float*)data;
-        float current_speed = (gdata[2] - old_r_pos)/ (HAL_GetTick() - hal_last_tick) * 1000;
+        float *gdata = (float *) data;
+        float current_speed = (gdata[2] - old_r_pos) / (HAL_GetTick() - hal_last_tick) * 1000;
         hal_last_tick = HAL_GetTick();
         old_r_pos = gdata[2];
         updatePids(gdata[0], gdata[1], current_speed);
@@ -66,5 +78,7 @@ namespace EHECATL{
         target_y_angle = data[1];
         target_r_speed = data[2];
         target_y_speed = data[3];
+        isFlying = true;
     }
+
 }

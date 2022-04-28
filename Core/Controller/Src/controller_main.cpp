@@ -112,7 +112,7 @@ int controller_main(void)
     MX_SPI1_Init();
     /* USER CODE BEGIN 2 */
     char text[] = "Het apparaat is opgestart\n";
-    HAL_UART_Transmit(&huart1, (uint8_t*)text, strlen(text), 100);
+    HAL_UART_Transmit(&huart1, text, strlen(text), 100);
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::controller controll(htim2, comms);

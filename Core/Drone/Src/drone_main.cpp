@@ -34,6 +34,7 @@
 #include "Barometer.hpp"
 #include "DataPrinter.hpp"
 #include "ErrorPrinter.hpp"
+#include "StateController.hpp"
 #include <cstdio>
 #include <cstring>
 
@@ -129,18 +130,16 @@ int drone_main(void)
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::ErrorPrinter error_printer(comms, huart1);
+    EHECATL::StateController state_controller;
+
+
     EHECATL::PID_Controller pic_controller(comms);
     EHECATL::Motors motors(comms);
     EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
-
-
-
     mpu.init();
-    mpu.setOffsets();
-    comms.setDeviceId(2);
-    comms.setTargetId(1);
+
 
 
     /* USER CODE END 2 */
@@ -155,8 +154,38 @@ int drone_main(void)
 
         /* USER CODE BEGIN 3 */
         comms.update();
-        mpu.update();
-        barometer.update();
+
+        switch (state_controller.getState()) {
+            case EHECATL::DRONE_MODES::SLEEP: //motors not turing/ drone is basicly off
+                break;
+
+            case EHECATL::DRONE_MODES::SETUP:
+                mpu.setOffsets();
+                barometer.setBaseHeight();
+                comms.setDeviceId(2);
+                comms.setTargetId(1);
+                state_controller.setState(EHECATL::DRONE_MODES::IDLE);
+                break;
+
+            case EHECATL::DRONE_MODES::IDLE:
+                break;
+
+            case EHECATL::DRONE_MODES::FLYING:
+                mpu.update();
+                barometer.update();
+                break;
+
+            case EHECATL::DRONE_MODES::LANDING:
+                mpu.update();
+                barometer.update();
+                break;
+                //drone is configure/ its ready to start flying
+
+            case EHECATL::DRONE_MODES::GOING_TO_SLEEP:
+                state_controller.setState(EHECATL::DRONE_MODES::SLEEP);
+                break;
+
+        }
 
     }
     return 0;

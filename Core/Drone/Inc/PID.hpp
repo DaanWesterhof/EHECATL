@@ -24,6 +24,7 @@ namespace EHECATL {
         uint32_t dt = 0;
         uint32_t last_dt = 0;
 
+
         /**
          * Calulcates the output value of the PID
          * @param desired_value The value you wish to achieve
@@ -56,6 +57,8 @@ namespace EHECATL {
         PID y_pid = PID(0.3, 0, 0, 0);
         PID r_pid = PID(0.3, 0, 0, 0);
 
+        bool isFlying = false;
+
         /**
          * Uses the PIDS to calculate new changes for the motor speeds
          * @param x_angle Current X angle of the drone
@@ -86,6 +89,16 @@ namespace EHECATL {
          * @param len the length of the payload in bytes
          */
         void newTargetAngles(uint8_t command, uint8_t * data, uint8_t len);
+
+        /**
+         * callback function to enable or disable the flying mode, when switched to disable, it will start landing mode, and it will slowly go down untill not going down anymore
+         * @param command the command to listen to (COMMAND_MSG::MODE)
+         * @param data the payload of the message: either (4: configuring, 5: idle, 6: flying, 7: landing)
+         * @param len
+         */
+        void startDrone(uint8_t command, uint8_t * data, uint8_t len);
+
+        void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
     };
 
 }
