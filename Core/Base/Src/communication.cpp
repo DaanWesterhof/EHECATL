@@ -24,7 +24,14 @@ namespace EHECATL{
 
         nrf.rx_set_address(0, this_device_adress);
         nrf.rx_set_address(1, this_device_proxy_address);
+
+
         nrf.tx_set_address(target_device_adress);
+
+        char str[100];
+        sprintf(str, "writing_adress: %u, %u, %u, %u, %u\n", target_device_adress.address_bytes[0], target_device_adress.address_bytes[1], target_device_adress.address_bytes[2], target_device_adress.address_bytes[3], target_device_adress.address_bytes[4]);
+        HAL_UART_Transmit(&huart1, str, strlen(str), 100);
+        check();
 
         nrf.rx_auto_acknowledgement(0, true);
         nrf.rx_auto_acknowledgement(1, true);
@@ -68,6 +75,7 @@ namespace EHECATL{
         }
         return val;
     }
+
 
     communication::communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce) : nrf(bus, csnPort, csn, cePort, ce) {
         setup_nrf();

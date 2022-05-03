@@ -47,7 +47,6 @@ namespace EHECATL {
     Motors::Motors(communication &comms) : comms(comms) {
         comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
         comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(setBaseSpeed));
-        comms.addNewCallback(MSG_COMMANDS::BAROMETER_BASE_HEIGHT, COMM_CALLBACK(recieveBaseHeight));
         dshot_setTimers(&htim2, TIM_CHANNEL_1, &htim2, TIM_CHANNEL_2, &htim3, TIM_CHANNEL_1, &htim4, TIM_CHANNEL_1);
         dshot_type_e type = dshot_type_e::DSHOT600;
         dshot_init(type);
@@ -57,6 +56,14 @@ namespace EHECATL {
         DRONE_MODE state = data[0];
         if (state == DRONE_MODES::FLYING) {
             isFlying = true;
+        } else if(state == DRONE_MODES::IDLE) {
+            isFlying = false;
+            motor_speeds[0] = 0;
+            motor_speeds[1] = 0;
+            motor_speeds[2] = 0;
+            motor_speeds[3] = 0;
+            dshot_write(motor_speeds);
+
         } else {
             isFlying = false;
             if(state == DRONE_MODES::LANDING){

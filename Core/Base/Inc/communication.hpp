@@ -67,6 +67,13 @@ namespace EHECATL {
         virtual int onMessageReceived(uint8_t command, uint8_t * payload, uint8_t len);
 
     public:  //functions
+
+        void check(){
+            nrf24l01::address adr = nrf.tx_get_address();
+            char str[100];
+            sprintf(str, "read_adress: %u, %u, %u, %u, %u\n", adr.address_bytes[0], adr.address_bytes[1], adr.address_bytes[2], adr.address_bytes[3], adr.address_bytes[4]);
+            HAL_UART_Transmit(&huart1, str, strlen(str), 100);
+        }
         /**
          * Constructor for the communication class
          * @param bus A reference to a SPI handle from the stm32 HAL

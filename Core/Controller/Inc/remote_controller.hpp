@@ -18,14 +18,23 @@ namespace EHECATL{
     private: //variables
 
         TIM_HandleTypeDef &timer;
-        EHECATL::communication &communicator;
+        EHECATL::communication &comms;
         int state = 1;
     public: //variables
 
     private: //functions
 
     public: //functions
-        controller(TIM_HandleTypeDef &timer, EHECATL::communication &communicator) : timer(timer), communicator(communicator){}
+        void print_state(uint8_t command, uint8_t * payload, uint8_t len){
+            char data[100];
+            sprintf(data, "new_state: %u\n", *payload);
+            HAL_UART_Transmit(&huart1, data, strlen(data), 100);
+        }
+
+        controller(TIM_HandleTypeDef &timer, EHECATL::communication &communicator) : timer(timer), comms(communicator){
+            comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE, COMM_CALLBACK(print_state));
+        }
+
     };
 }
 

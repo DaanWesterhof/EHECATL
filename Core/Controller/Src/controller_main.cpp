@@ -72,6 +72,12 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void print_state(uint8_t command, uint8_t * payload, uint8_t len){
+    char data[100];
+    sprintf(data, "new_state: %u\n", *payload);
+    HAL_UART_Transmit(&huart1, data, strlen(data), 100);
+}
+
 
 
 
@@ -131,10 +137,11 @@ int controller_main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-
         joystick.update();
+        HAL_Delay(10);
         comms.update();
         HAL_Delay(10);
+
     }
     /* USER CODE END 3 */
     return 0;

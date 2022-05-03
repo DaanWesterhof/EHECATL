@@ -14,8 +14,8 @@ namespace EHECATL {
     class Motors {
         int base_speed = 0;
         int current_offset = 0;
-        int motor_speeds[4] = {};
-        bool PID_Controll_Speed;
+        uint16_t motor_speeds[4] = {};
+        bool PID_Controll_Speed = false;
         float desired_height = 0;
         float current_height = 0;
         float base_height = 0;
@@ -23,9 +23,7 @@ namespace EHECATL {
 
         int land_speed = -5;
 
-        bool isFlying;
-
-
+        bool isFlying= false;
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
 
     public:
@@ -57,8 +55,6 @@ namespace EHECATL {
         void setMotorSpeedsYSpeed(uint8_t command, uint8_t *data, uint8_t len);
 
         void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
-
-        void recieveBaseHeight(uint8_t command, uint8_t *data, uint8_t len);
 
     };
 

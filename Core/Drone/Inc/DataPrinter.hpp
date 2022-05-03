@@ -34,8 +34,8 @@ namespace EHECATL{
     public:
 
         DataPrinter(UART_HandleTypeDef & huart, communication & comms) : huart(huart), comms(comms) {
-            comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(print_barometer));
-            comms.addNewCallback(MSG_COMMANDS::CURRENT_ANGLES, COMM_CALLBACK(print_gyroscope));
+            //comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(print_barometer));
+            //comms.addNewCallback(MSG_COMMANDS::CURRENT_ANGLES, COMM_CALLBACK(print_gyroscope));
         }
     };
 }

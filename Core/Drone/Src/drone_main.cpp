@@ -77,6 +77,12 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void print_state(uint8_t command, uint8_t * payload, uint8_t len){
+    char data[100];
+    sprintf(data, "new_state: %u\n", *payload);
+    HAL_UART_Transmit(&huart1, data, strlen(data), 100);
+}
+
 
 
 
@@ -130,7 +136,7 @@ int drone_main(void)
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::ErrorPrinter error_printer(comms, huart1);
-    EHECATL::StateController state_controller;
+    EHECATL::StateController state_controller(comms);
 
 
     EHECATL::PID_Controller pic_controller(comms);
@@ -138,6 +144,7 @@ int drone_main(void)
     EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
+    comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE, [&](uint8_t command, uint8_t * payload, uint8_t len) { print_state(command, payload, len);});
     mpu.init();
 
 
@@ -148,6 +155,7 @@ int drone_main(void)
     /* USER CODE BEGIN WHILE */
     HAL_Delay(100);
     volatile uint8_t _true = 1;
+    state_controller.setState(EHECATL::DRONE_MODES::SETUP);
     while (_true)
     {
         /* USER CODE END WHILE */
@@ -155,16 +163,17 @@ int drone_main(void)
         /* USER CODE BEGIN 3 */
         comms.update();
 
+
         switch (state_controller.getState()) {
             case EHECATL::DRONE_MODES::SLEEP: //motors not turing/ drone is basicly off
                 break;
 
             case EHECATL::DRONE_MODES::SETUP:
-                mpu.setOffsets();
+                //mpu.setOffsets();
                 barometer.setBaseHeight();
                 comms.setDeviceId(2);
                 comms.setTargetId(1);
-                state_controller.setState(EHECATL::DRONE_MODES::IDLE);
+                state_controller.setState(EHECATL::DRONE_MODES::FLYING);
                 break;
 
             case EHECATL::DRONE_MODES::IDLE:
