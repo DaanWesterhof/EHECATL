@@ -138,9 +138,7 @@ int controller_main(void)
 
         /* USER CODE BEGIN 3 */
         joystick.update();
-        HAL_Delay(10);
         comms.update();
-        HAL_Delay(10);
 
     }
     /* USER CODE END 3 */

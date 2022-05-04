@@ -14,7 +14,7 @@
 //the amound of commands supported by the communication class
 
 #ifndef COMMAND_COUNT
-#define COMMAND_COUNT 50
+#define COMMAND_COUNT 30
 #endif
 
 #define COMM_CALLBACK(functionname)  [&](uint8_t command, uint8_t * payload, uint8_t len) { this->functionname(command, payload, len);}

@@ -14,6 +14,7 @@ namespace EHECATL {
     public:
         StateController(communication &comms) : comms(comms) {
             current_state = DRONE_MODES::SETUP;
+            comms.addNewCallback(EHECATL::MSG_COMMANDS::DESIRED_STATE, COMM_CALLBACK(newDesiredState));
         }
 
     private:
@@ -37,7 +38,7 @@ namespace EHECATL {
                     break;
 
                 case DRONE_MODES::FLYING:
-                    if(current_state == DRONE_MODES::IDLE){
+                    if(current_state == DRONE_MODES::IDLE || current_state == DRONE_MODES::LANDING){
                         setState(state);
                     }
                     break;

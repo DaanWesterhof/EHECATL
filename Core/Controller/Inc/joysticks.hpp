@@ -20,6 +20,12 @@ namespace EHECATL{
         double data[4] = {};
         float middle_values[4] = {};
 
+        bool ispressedl = false;
+        bool ispressedr = false;
+        uint8_t button_message_data[2];
+
+        unsigned int last_check = 0;
+
 
     private://functions
 

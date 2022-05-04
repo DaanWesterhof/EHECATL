@@ -155,7 +155,10 @@ int drone_main(void)
     /* USER CODE BEGIN WHILE */
     HAL_Delay(100);
     volatile uint8_t _true = 1;
-    state_controller.setState(EHECATL::DRONE_MODES::SETUP);
+    state_controller.setState(EHECATL::DRONE_MODES::SLEEP);
+    comms.setDeviceId(2);
+    comms.setTargetId(1);
+    unsigned int last_update = 0;
     while (_true)
     {
         /* USER CODE END WHILE */
@@ -163,6 +166,11 @@ int drone_main(void)
         /* USER CODE BEGIN 3 */
         comms.update();
 
+        if(HAL_GetTick() - last_update > 500){
+            uint8_t st = state_controller.getState();
+            comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
+            last_update = HAL_GetTick();
+        }
 
         switch (state_controller.getState()) {
             case EHECATL::DRONE_MODES::SLEEP: //motors not turing/ drone is basicly off
@@ -171,8 +179,7 @@ int drone_main(void)
             case EHECATL::DRONE_MODES::SETUP:
                 //mpu.setOffsets();
                 barometer.setBaseHeight();
-                comms.setDeviceId(2);
-                comms.setTargetId(1);
+                HAL_Delay(100);
                 state_controller.setState(EHECATL::DRONE_MODES::FLYING);
                 break;
 
