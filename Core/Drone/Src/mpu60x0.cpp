@@ -11,7 +11,7 @@ namespace EHECATL{
     void MPU_GYRO::setOffsets() {
         uint8_t text_buffer[100];
         float tempsets[3] = {};
-        for (int i = 0; i < 3000; i++){
+        for (int i = 0; i < 300; i++){
             while (fifoCount < packetSize) {
                 //insert here your code
                 fifoCount = mpu.getFIFOCount();
@@ -32,7 +32,7 @@ namespace EHECATL{
                     mpu.dmpGetQuaternion(&q,fifoBuffer);
                     mpu.dmpGetGravity(&gravity,&q);
                     mpu.dmpGetYawPitchRoll(ypr,&q,&gravity);
-                    if(i > 2950) {
+                    if(i > 295) {
                         tempsets[1] += ypr[1] * 180 / PI;
                         tempsets[2] += ypr[2] * 180 / PI;
                         tempsets[0] += ypr[0] * 180 / PI;

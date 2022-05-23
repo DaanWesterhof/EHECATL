@@ -56,6 +56,7 @@ namespace EHECATL {
         PID x_pid = PID(0.3, 0, 0, 0);
         PID y_pid = PID(0.3, 0, 0, 0);
         PID r_pid = PID(0.3, 0, 0, 0);
+        PID vertical_speed_pid = PID(0.3, 0 , 0, 0);
 
         bool isFlying = false;
 

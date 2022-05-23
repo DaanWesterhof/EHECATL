@@ -3,6 +3,7 @@
 //
 
 #include "Motors.hpp"
+#include "MotorPWMThing.hpp"
 
 namespace EHECATL {
 
@@ -12,26 +13,27 @@ namespace EHECATL {
         motor_speeds[1] += mdata[1];
         motor_speeds[2] += mdata[2];
         motor_speeds[3] += mdata[3];
+        write_motor_speeds(motor_speeds);
     }
 
-    void Motors::setMotorSpeedsYSpeed(uint8_t command, uint8_t *data, uint8_t len) {
-        int *mdata = (int *) data;
-        if (mdata[0] == 0) {
+
+
+    void Motors::setMotorsForVerticalSpeed(uint8_t command, uint8_t *data, uint8_t len) {
+        double current_speed = *(double *) data;
+        if (desired_speed = 0) {
             PID_Controll_Speed = true;
         } else {
-            if (data[0] != current_offset) {
-                int dif = data[0] - current_offset;
-                current_offset = data[0];
-                motor_speeds[0] += dif;
-                motor_speeds[1] += dif;
-                motor_speeds[2] += dif;
-                motor_speeds[3] += dif;
-            }
             PID_Controll_Speed = false;
+            int diff = v_speed_pid.calulateAction(desired_speed, current_speed);
+            motor_speeds[0] += diff;
+            motor_speeds[1] += diff;
+            motor_speeds[2] += diff;
+            motor_speeds[3] += diff;
+            write_motor_speeds(motor_speeds);
         }
     }
 
-    void Motors::setBaseSpeed(uint8_t command, uint8_t *data, uint8_t len) {
+    void Motors::hoverController(uint8_t command, uint8_t *data, uint8_t len) {
         current_height = ((float *) data)[0];
         if (PID_Controll_Speed) {
             int diff = height_pid.calulateAction(desired_height, current_height);
@@ -39,6 +41,7 @@ namespace EHECATL {
             motor_speeds[1] += diff;
             motor_speeds[2] += diff;
             motor_speeds[3] += diff;
+            write_motor_speeds(motor_speeds);
         } else {
             desired_height = current_height;
         }
@@ -46,10 +49,11 @@ namespace EHECATL {
 
     Motors::Motors(communication &comms) : comms(comms) {
         comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
-        comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(setBaseSpeed));
-        dshot_setTimers(&htim2, TIM_CHANNEL_1, &htim2, TIM_CHANNEL_2, &htim3, TIM_CHANNEL_1, &htim4, TIM_CHANNEL_1);
-        dshot_type_e type = dshot_type_e::DSHOT600;
-        dshot_init(type);
+        comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(hoverController));
+        comms.addNewCallback(MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setMotorsForVerticalSpeed));
+
+        //dshot_type_e type = dshot_type_e::DSHOT600;
+        //dshot_init(type);
     }
 
     void Motors::StateRecieved(uint8_t command, uint8_t *data, uint8_t len) {
@@ -62,15 +66,13 @@ namespace EHECATL {
             motor_speeds[1] = 0;
             motor_speeds[2] = 0;
             motor_speeds[3] = 0;
-            dshot_write(motor_speeds);
+            write_motor_speeds(motor_speeds);
 
         } else {
             isFlying = false;
             if(state == DRONE_MODES::LANDING){
-                setMotorSpeedsForRotations(0, (uint8_t *)&land_speed, 4);
+                setMotorsForVerticalSpeed(0, (uint8_t *)&land_speed, 4);
             }
         }
     }
-
-
 }

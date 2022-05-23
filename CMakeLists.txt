@@ -60,7 +60,7 @@ if (drone_build)
     include_directories(Core/Base/Inc Core/Drone/Inc Core/Drone/Inc/peripherals Core/Controller/Inc Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/dshot_lib/inc Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
 endif (drone_build)
 if (controller_build)
-    include_directories(Core/Base/Inc Core/Controller/Inc Core/Controller/Inc/peripherals Core/Controller/Inc Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/dshot_lib/inc  Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
+    include_directories(Core/Base/Inc Core/Controller/Inc Core/Controller/Inc/peripherals Core/Controller/Inc Drivers/STM32F4_HAL_ST7735/inc Drivers/stm32-st7735/st7735 Drivers/BMP3-Sensor-API Drivers/cpp_nrf24l01/include Drivers/MPU6050/Inc Drivers/dshot_lib/inc  Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include )
 endif(controller_build)
 
 

@@ -34,33 +34,26 @@ namespace EHECATL{
     }
 
     void PID_Controller::updatePids(float x_angle, float y_angle, float r_speed) {
-        float x, y, r = 0;
-        x = x_pid.calulateAction(x_angle, target_x_angle);
-        y = y_pid.calulateAction(y_angle, target_y_angle);
-        r = r_pid.calulateAction(r_speed, target_r_speed);
+        float x_angle_correction, y_angle_correction, rotation_angle_correction = 0;
+        x_angle_correction = x_pid.calulateAction(x_angle, target_x_angle);
+        y_angle_correction = y_pid.calulateAction(y_angle, target_y_angle);
+        rotation_angle_correction = r_pid.calulateAction(r_speed, target_r_speed);
         //do calculation for motors for x and y z
         // add base onto it to keep flying, y height things
-        motor_change_values[0] = int(x);
-        motor_change_values[1] = int(x);
-        motor_change_values[2] = -int(x);
-        motor_change_values[3] = -int(x);
+        motor_change_values[0] = int(x_angle_correction);
+        motor_change_values[1] = int(x_angle_correction);
+        motor_change_values[2] = -int(x_angle_correction);
+        motor_change_values[3] = -int(x_angle_correction);
 
-        motor_change_values[0] += int(y);
-        motor_change_values[1] += int(y);
-        motor_change_values[2] += -int(y);
-        motor_change_values[3] += -int(y);
+        motor_change_values[0] += int(y_angle_correction);
+        motor_change_values[1] += int(y_angle_correction);
+        motor_change_values[2] += -int(y_angle_correction);
+        motor_change_values[3] += -int(y_angle_correction);
 
-        motor_change_values[0] += int(r);
-        motor_change_values[1] += -int(r);
-        motor_change_values[2] += int(r);
-        motor_change_values[3] += -int(r);
-
-        motor_change_values[0] += int(r);
-        motor_change_values[1] += -int(r);
-        motor_change_values[2] += int(r);
-        motor_change_values[3] += -int(r);
-
-        motor_change_values[4] = int(target_y_speed/4);
+        motor_change_values[0] += int(rotation_angle_correction);
+        motor_change_values[1] += -int(rotation_angle_correction);
+        motor_change_values[2] += int(rotation_angle_correction);
+        motor_change_values[3] += -int(rotation_angle_correction);
 
         comms.localMessage(MSG_COMMANDS::MOTOR_DIFFERENCE, (uint8_t* ) motor_change_values, 5*4);
     }

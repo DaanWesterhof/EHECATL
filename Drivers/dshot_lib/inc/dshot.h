@@ -22,6 +22,8 @@ extern "C" {
 
 
 /* User Configuration */
+#define max_motor_value 200
+
 // Timer Clock
 #define TIMER_CLOCK                100000000    // 100MHz
 

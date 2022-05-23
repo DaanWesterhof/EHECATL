@@ -53,6 +53,11 @@ void dshot_init(dshot_type_e dshot_type)
 
 void dshot_write(uint16_t* motor_value)
 {
+    for(int i = 0; i < 4; i ++){
+        if(motor_value[i] > max_motor_value){
+            motor_value[i] = max_motor_value;
+        }
+    }
 	dshot_prepare_dmabuffer_all(motor_value);
 	dshot_dma_start();
 	dshot_enable_dma_request();

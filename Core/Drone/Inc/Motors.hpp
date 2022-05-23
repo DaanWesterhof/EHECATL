@@ -12,19 +12,21 @@
 namespace EHECATL {
 
     class Motors {
-        int base_speed = 0;
-        int current_offset = 0;
         uint16_t motor_speeds[4] = {};
+
+
         bool PID_Controll_Speed = false;
         float desired_height = 0;
         float current_height = 0;
         float base_height = 0;
+        double desired_speed = 0;
         communication &comms;
 
-        int land_speed = -5;
+        double land_speed = -0.1;
 
         bool isFlying= false;
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
+        PID v_speed_pid = PID(0.3, 0.3, 0.3, 0);
 
     public:
         explicit Motors(communication &comms);
@@ -44,7 +46,7 @@ namespace EHECATL {
          * @param data The payload of the callback message, should be a pointer to (a list of) 1 float.
          * @param len the length of the payload/data in bytes
          */
-        void setBaseSpeed(uint8_t command, uint8_t * data, uint8_t len);
+        void hoverController(uint8_t command, uint8_t * data, uint8_t len);
 
         /**
          * Callback function for the communication system. Sets the motor speeds for vertical movement based on user joystick controll.
@@ -52,7 +54,7 @@ namespace EHECATL {
          * @param data The payload of the callback message, should be a pointer to an Int value.
          * @param len The length of the payload.
          */
-        void setMotorSpeedsYSpeed(uint8_t command, uint8_t *data, uint8_t len);
+        void setMotorsForVerticalSpeed(uint8_t command, uint8_t *data, uint8_t len);
 
         void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
 

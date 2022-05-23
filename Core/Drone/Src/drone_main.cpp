@@ -37,6 +37,7 @@
 #include "StateController.hpp"
 #include <cstdio>
 #include <cstring>
+#include <MotorPWMThing.hpp>
 
 #include "dma.h"
 #include "gpio.h"
@@ -119,6 +120,14 @@ int drone_main(void)
     MX_TIM2_Init();
     MX_TIM3_Init();
     MX_TIM4_Init();
+
+    EHECATL::setTimers(&htim2, TIM_CHANNEL_1, &htim2, TIM_CHANNEL_2, &htim2, TIM_CHANNEL_3, &htim4, TIM_CHANNEL_1);
+    EHECATL::init_motor_pwm();
+    bool armed = false;
+    EHECATL::motor_arm();
+    armed = true;
+
+
     MX_USART1_UART_Init();
     MX_DMA_Init();
     MX_SPI1_Init();
@@ -159,6 +168,13 @@ int drone_main(void)
     comms.setDeviceId(2);
     comms.setTargetId(1);
     unsigned int last_update = 0;
+    uint16_t speeds[4] = {1150, 1150, 1150, 1150};
+    bool state_change = false;
+    EHECATL::DRONE_MODE current_mode = state_controller.getState();
+    EHECATL::write_motor_speeds(speeds);
+
+
+
     while (_true)
     {
         /* USER CODE END WHILE */
@@ -171,6 +187,11 @@ int drone_main(void)
             comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
             last_update = HAL_GetTick();
         }
+        if(state_controller.getState() != current_mode){
+            state_change = true;
+            current_mode = state_controller.getState();
+        }
+
 
         switch (state_controller.getState()) {
             case EHECATL::DRONE_MODES::SLEEP: //motors not turing/ drone is basicly off
@@ -178,15 +199,21 @@ int drone_main(void)
 
             case EHECATL::DRONE_MODES::SETUP:
                 //mpu.setOffsets();
-                barometer.setBaseHeight();
-                HAL_Delay(100);
+                //barometer.setBaseHeight();
+
+
                 state_controller.setState(EHECATL::DRONE_MODES::FLYING);
+
                 break;
 
             case EHECATL::DRONE_MODES::IDLE:
                 break;
 
             case EHECATL::DRONE_MODES::FLYING:
+                if(state_change){
+
+                    state_change = false;
+                }
                 mpu.update();
                 barometer.update();
                 break;
