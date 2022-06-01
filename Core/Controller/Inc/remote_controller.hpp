@@ -48,38 +48,14 @@ namespace EHECATL{
         }
 
         void state_switcher(uint8_t command, uint8_t * payload, uint8_t len){
-            if(payload[1] == 1){
-                if(payload[0] == 2){
-                    switch(recieved_state) {
-                        case DRONE_MODES::SLEEP:
-                            sendNewState(DRONE_MODES::SETUP);
-                            break;
-                        case DRONE_MODES::IDLE:
-                        case DRONE_MODES::LANDING:
-                            sendNewState(DRONE_MODES::FLYING);
-                            break;
-                        case DRONE_MODES::GOING_TO_SLEEP:
-                        case DRONE_MODES::FLYING:
-                        case DRONE_MODES::SETUP:
-                        default:
-                            break;//none
-                    }
+            if(payload[1] == 1){//a button has been pressed
+                if(payload[0] == 2){ //its the right button
+                    uint8_t p_data[1] = {0};
+                    comms.sendMessage(EHECATL::MSG_COMMANDS::STATE_UP, p_data, 1);
                 }
-                if(payload[0] == 1){
-                    switch(recieved_state) {
-                        case DRONE_MODES::IDLE:
-                            sendNewState(DRONE_MODES::SLEEP);
-                            break; //send desired_state sleep
-                        case DRONE_MODES::FLYING:
-                            sendNewState(DRONE_MODES::LANDING);
-                            break; //send desired_state landing
-                        case DRONE_MODES::SETUP:
-                        case DRONE_MODES::LANDING:
-                        case DRONE_MODES::SLEEP:
-                        case DRONE_MODES::GOING_TO_SLEEP:
-                        default:
-                            break;//none
-                    }
+                if(payload[0] == 1){ //its the left button
+                    uint8_t p_data[1] = {0};
+                    comms.sendMessage(EHECATL::MSG_COMMANDS::STATE_DOWN, p_data, 1);
                 }
             }
 

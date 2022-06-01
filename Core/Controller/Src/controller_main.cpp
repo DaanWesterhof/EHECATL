@@ -31,6 +31,8 @@
 #include "ADC_helper.hpp"
 #include <stdio.h>
 #include <string.h>
+#include "ST7735_LIB.hpp"
+#include "screen.hpp"
 
 #include "adc.h"
 #include "dma.h"
@@ -80,6 +82,27 @@ void print_state(uint8_t command, uint8_t * payload, uint8_t len){
 
 
 
+class screenManager {
+    EHECATL::Canvas<21, 20> & canvas;
+    EHECATL::communication & comms;
+    uint8_t error_x = 0;
+    uint8_t error_y = 0;
+
+
+public:
+
+    screenManager(EHECATL::Canvas<21, 20> &canvas, EHECATL::communication &comms) : canvas(canvas), comms(comms) {
+        comms.addNewCallback(EHECATL::MSG_COMMANDS::ERROR_MESSAGE, COMM_CALLBACK(print_error));
+    }
+
+
+    void print_error(uint8_t command, uint8_t *payload, uint8_t len) {
+        canvas.writeAndFlushLine(error_x, error_y, (char *)(payload+1), len, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+
+    }
+
+};
+
 
 /* USER CODE END 0 */
 
@@ -123,6 +146,8 @@ int controller_main(void)
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::controller controll(htim2, comms);
     EHECATL::joystick joystick(hadc1, comms);
+    ST7735::ST7735 screen(GPIO_PIN_11, *GPIOA, GPIO_PIN_12, *GPIOA,  GPIO_PIN_13, *GPIOA, hspi1);
+    EHECATL::Canvas<100, 100> canvas(screen);
     comms.setDeviceId(1);
     comms.setTargetId(2);
     joystick.startup();

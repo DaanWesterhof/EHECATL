@@ -30,11 +30,6 @@ void EHECATL::setTimers(TIM_HandleTypeDef *tim1, uint32_t tim_1_channel, TIM_Han
 }
 
 void EHECATL::write_motor_speeds(uint16_t *motor_value) {
-//    for(int i = 0; i < 4; i++){
-//        if(motor_value[i] > max_motor_value){
-//            motor_value[i] = max_motor_value;
-//        }
-//    }
     __HAL_TIM_SET_COMPARE(MOTOR_1_TIM, MOTOR_1_TIM_CHANNEL, motor_value[0]);
     __HAL_TIM_SET_COMPARE(MOTOR_2_TIM, MOTOR_2_TIM_CHANNEL, motor_value[1]);
     __HAL_TIM_SET_COMPARE(MOTOR_3_TIM, MOTOR_3_TIM_CHANNEL, motor_value[2]);
@@ -58,7 +53,7 @@ void EHECATL::init_motor_pwm() {
 
 void EHECATL::motor_arm() {
     uint16_t motor_low[4] = {1000,1000, 1000, 1000};
-    uint16_t motor_high[4] = {1950, 1950, 1950, 1950};
+    uint16_t motor_high[4] = {2150, 2150, 2150, 2150};
     write_motor_speeds(motor_low);
     HAL_Delay(100);
     write_motor_speeds(motor_high);

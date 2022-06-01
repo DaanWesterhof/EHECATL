@@ -14,6 +14,9 @@ namespace EHECATL {
     class Motors {
         uint16_t motor_speeds[4] = {};
 
+        int16_t desired_change_height[4] = {};
+        int16_t desired_change_movement[4] = {};
+
 
         bool PID_Controll_Speed = false;
         float desired_height = 0;
@@ -24,11 +27,25 @@ namespace EHECATL {
 
         double land_speed = -0.1;
 
-        bool isFlying= false;
+
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
         PID v_speed_pid = PID(0.3, 0.3, 0.3, 0);
 
     public:
+
+        uint32_t time_since_motor = 0;
+        bool isFlying= false;
+
+
+        void getChange(int16_t * change){
+            for(int i = 0; i < 4; i++){
+                change[i] += desired_change_height[i];
+                change[i] += desired_change_movement[i];
+                change[i] += desired_change_movement[i];
+            }
+        }
+
+
         explicit Motors(communication &comms);
 
         /**
@@ -57,6 +74,8 @@ namespace EHECATL {
         void setMotorsForVerticalSpeed(uint8_t command, uint8_t *data, uint8_t len);
 
         void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
+
+        void temp_motor_tester(uint8_t command, uint8_t *data, uint8_t len);
 
     };
 

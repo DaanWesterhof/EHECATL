@@ -21,16 +21,18 @@ namespace EHECATL{
         static inline constexpr const uint8_t ERROR_MESSAGE         = 8;
         static inline constexpr const uint8_t NEW_STATE             = 9;
         static inline constexpr const uint8_t DESIRED_STATE         = 10;
+        static inline constexpr const uint8_t STATE_UP              = 11;
+        static inline constexpr const uint8_t STATE_DOWN            = 12;
     };
+
 
     typedef uint8_t DRONE_MODE;
     struct DRONE_MODES {
         static inline constexpr const DRONE_MODE SLEEP          = 0;
-        static inline constexpr const DRONE_MODE IDLE           = 1;
-        static inline constexpr const DRONE_MODE SETUP          = 2;
+        static inline constexpr const DRONE_MODE SETUP          = 1;
+        static inline constexpr const DRONE_MODE IDLE           = 2;
         static inline constexpr const DRONE_MODE FLYING         = 3;
         static inline constexpr const DRONE_MODE LANDING        = 4;
-        static inline constexpr const DRONE_MODE GOING_TO_SLEEP = 5;
     };
 
     struct MISC_MESSAGES {

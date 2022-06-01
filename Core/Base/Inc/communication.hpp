@@ -129,6 +129,20 @@ namespace EHECATL {
         int addNewCallback (uint8_t command, const std::function<void(uint8_t command, uint8_t * payload, uint8_t len)>& callback);
     };
 
+    /**
+     *
+     * max message length = 12
+     * @param comms
+     * @param error_type
+     * @param message
+     * @param len
+     */
+    void displayError(communication & comms, uint8_t error_type, char * message, unsigned int len){
+        uint8_t error_message[12+1];
+        error_message[0] = error_type;
+        memcpy(error_message+1, message, len);
+        comms.sendMessage(EHECATL::MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *)message, len);
+    }
 }
 
 #endif //EHECATL_COMMUNICATION_HPP

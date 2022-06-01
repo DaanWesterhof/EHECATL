@@ -16,7 +16,8 @@ namespace EHECATL {
 
     private:
 
-        void newDesiredState(uint8_t command, uint8_t * data, uint8_t len);
+        void state_up(uint8_t command, uint8_t * payload, uint8_t len);
+        void state_down(uint8_t command, uint8_t * payload, uint8_t len);
 
         void speedListener(double speed);
 

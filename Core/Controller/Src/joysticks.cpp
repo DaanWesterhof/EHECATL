@@ -47,7 +47,7 @@ namespace EHECATL{
     }
 
     void joystick::update() {
-        if(HAL_GetTick() - last_check > 20) {
+        if(HAL_GetTick() - last_check > 50) {
             sendSticks();
             last_check = HAL_GetTick();
         }

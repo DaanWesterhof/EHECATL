@@ -9,11 +9,10 @@ namespace EHECATL {
 
     void Motors::setMotorSpeedsForRotations(uint8_t command, uint8_t *data, uint8_t len) {
         int *mdata = (int *) data;
-        motor_speeds[0] += mdata[0];
-        motor_speeds[1] += mdata[1];
-        motor_speeds[2] += mdata[2];
-        motor_speeds[3] += mdata[3];
-        write_motor_speeds(motor_speeds);
+        desired_change_movement[0] = mdata[0];
+        desired_change_movement[1] = mdata[1];
+        desired_change_movement[2] = mdata[2];
+        desired_change_movement[3] = mdata[3];
     }
 
 
@@ -25,11 +24,10 @@ namespace EHECATL {
         } else {
             PID_Controll_Speed = false;
             int diff = v_speed_pid.calulateAction(desired_speed, current_speed);
-            motor_speeds[0] += diff;
-            motor_speeds[1] += diff;
-            motor_speeds[2] += diff;
-            motor_speeds[3] += diff;
-            write_motor_speeds(motor_speeds);
+            desired_change_height[0] = diff;
+            desired_change_height[1] = diff;
+            desired_change_height[2] = diff;
+            desired_change_height[3] = diff;
         }
     }
 
@@ -37,11 +35,10 @@ namespace EHECATL {
         current_height = ((float *) data)[0];
         if (PID_Controll_Speed) {
             int diff = height_pid.calulateAction(desired_height, current_height);
-            motor_speeds[0] += diff;
-            motor_speeds[1] += diff;
-            motor_speeds[2] += diff;
-            motor_speeds[3] += diff;
-            write_motor_speeds(motor_speeds);
+            desired_change_height[0] = diff;
+            desired_change_height[1] = diff;
+            desired_change_height[2] = diff;
+            desired_change_height[3] = diff;
         } else {
             desired_height = current_height;
         }
@@ -51,9 +48,7 @@ namespace EHECATL {
         comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
         comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(hoverController));
         comms.addNewCallback(MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setMotorsForVerticalSpeed));
-
-        //dshot_type_e type = dshot_type_e::DSHOT600;
-        //dshot_init(type);
+        //comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(temp_motor_tester));
     }
 
     void Motors::StateRecieved(uint8_t command, uint8_t *data, uint8_t len) {
@@ -73,6 +68,26 @@ namespace EHECATL {
             if(state == DRONE_MODES::LANDING){
                 setMotorsForVerticalSpeed(0, (uint8_t *)&land_speed, 4);
             }
+        }
+    }
+
+    void Motors::temp_motor_tester(uint8_t command, uint8_t *data, uint8_t len) {
+        if(isFlying) {
+            time_since_motor = HAL_GetTick();
+            float *mdata = (float *) data;
+            motor_speeds[0] = 1000 + mdata[0] * 200;
+            motor_speeds[1] = 1000 + mdata[0] * 200;
+            motor_speeds[2] = 1000 + mdata[0] * 200;
+            motor_speeds[3] = 1000 + mdata[0] * 200;
+            write_motor_speeds(motor_speeds);
+        }else{
+            time_since_motor = HAL_GetTick();
+            motor_speeds[0] = 0;
+            motor_speeds[1] = 0;
+            motor_speeds[2] = 0;
+            motor_speeds[3] = 0;
+            write_motor_speeds(motor_speeds);
+            //new list for this
         }
     }
 }

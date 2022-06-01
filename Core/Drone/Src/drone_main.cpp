@@ -127,7 +127,6 @@ int drone_main(void)
     EHECATL::motor_arm();
     armed = true;
 
-
     MX_USART1_UART_Init();
     MX_DMA_Init();
     MX_SPI1_Init();
@@ -142,19 +141,18 @@ int drone_main(void)
     HAL_Delay(1000);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
-
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::ErrorPrinter error_printer(comms, huart1);
     EHECATL::StateController state_controller(comms);
 
-
-    EHECATL::PID_Controller pic_controller(comms);
+    EHECATL::PID_Controller pid_controller(comms);
     EHECATL::Motors motors(comms);
     EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
-    comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE, [&](uint8_t command, uint8_t * payload, uint8_t len) { print_state(command, payload, len);});
     mpu.init();
+
+
 
 
 
@@ -168,68 +166,37 @@ int drone_main(void)
     comms.setDeviceId(2);
     comms.setTargetId(1);
     unsigned int last_update = 0;
-    uint16_t speeds[4] = {1150, 1150, 1150, 1150};
-    bool state_change = false;
     EHECATL::DRONE_MODE current_mode = state_controller.getState();
-    EHECATL::write_motor_speeds(speeds);
 
+
+    int16_t change[4] = {};
+    uint16_t motor_speeds[4] = {};
+    uint16_t max_value = 1500;
 
 
     while (_true)
     {
-        /* USER CODE END WHILE */
 
-        /* USER CODE BEGIN 3 */
-        comms.update();
-
-        if(HAL_GetTick() - last_update > 500){
+        if(HAL_GetTick() - last_update > 250){
             uint8_t st = state_controller.getState();
             comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
             last_update = HAL_GetTick();
         }
-        if(state_controller.getState() != current_mode){
-            state_change = true;
-            current_mode = state_controller.getState();
-        }
+        mpu.update();
+        barometer.update();
 
-
-        switch (state_controller.getState()) {
-            case EHECATL::DRONE_MODES::SLEEP: //motors not turing/ drone is basicly off
-                break;
-
-            case EHECATL::DRONE_MODES::SETUP:
-                //mpu.setOffsets();
-                //barometer.setBaseHeight();
-
-
-                state_controller.setState(EHECATL::DRONE_MODES::FLYING);
-
-                break;
-
-            case EHECATL::DRONE_MODES::IDLE:
-                break;
-
-            case EHECATL::DRONE_MODES::FLYING:
-                if(state_change){
-
-                    state_change = false;
+        if(state_controller.getState() == EHECATL::DRONE_MODES::FLYING){
+            motors.getChange(change);
+            for(int i = 0; i < 4 ; i++){
+                motor_speeds[i] += change[i];
+                if(motor_speeds[i] <1000){
+                    motor_speeds[i] = 1000;
+                }else if(motor_speeds[i] > max_value){
+                    motor_speeds[i] = max_value;
                 }
-                mpu.update();
-                barometer.update();
-                break;
-
-            case EHECATL::DRONE_MODES::LANDING:
-                mpu.update();
-                barometer.update();
-                break;
-                //drone is configure/ its ready to start flying
-
-            case EHECATL::DRONE_MODES::GOING_TO_SLEEP:
-                state_controller.setState(EHECATL::DRONE_MODES::SLEEP);
-                break;
-
+            }
+            EHECATL::write_motor_speeds(motor_speeds);
         }
-
     }
     return 0;
     /* USER CODE END 3 */
