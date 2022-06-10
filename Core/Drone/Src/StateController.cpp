@@ -5,19 +5,11 @@
 #include "StateController.hpp"
 
 EHECATL::StateController::StateController(EHECATL::communication &comms) : comms(comms) {
-    current_state = DRONE_MODES::SETUP;
-    comms.addNewCallback(EHECATL::MSG_COMMANDS::STATE_UP, COMM_CALLBACK(newDesiredState));
-    comms.addNewCallback(EHECATL::MSG_COMMANDS::STATE_DOWN, COMM_CALLBACK(newDesiredState));
+    current_state = DRONE_MODES::SLEEP;
+    comms.addNewCallback(EHECATL::MSG_COMMANDS::STATE_UP, COMM_CALLBACK(state_up));
+    comms.addNewCallback(EHECATL::MSG_COMMANDS::STATE_DOWN, COMM_CALLBACK(state_down));
 }
 
-
-void EHECATL::StateController::speedListener(double speed) {
-    if(current_state == DRONE_MODES::LANDING) {
-        if (speed < 0.005 && speed > -0.005) {
-            setState(DRONE_MODES::IDLE);
-        }
-    }
-}
 
 EHECATL::DRONE_MODE EHECATL::StateController::getState() {
     return current_state;
@@ -35,10 +27,17 @@ void EHECATL::StateController::setState(EHECATL::DRONE_MODE new_state) {
 }
 
 void EHECATL::StateController::state_down(uint8_t command, uint8_t *payload, uint8_t len) {
-
-
+    if(current_state == EHECATL::DRONE_MODES::FLYING){
+        setState(EHECATL::DRONE_MODES::LANDING);
+    }
 }
 
 void EHECATL::StateController::state_up(uint8_t command, uint8_t * payload, uint8_t len) {
+    if(current_state == EHECATL::DRONE_MODES::SLEEP){
+        setState(EHECATL::DRONE_MODES::SETUP);
+    }
+    if(current_state == EHECATL::DRONE_MODES::IDLE){
+        setState(EHECATL::DRONE_MODES::FLYING);
+    }
 
 }

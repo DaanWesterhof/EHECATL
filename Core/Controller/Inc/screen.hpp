@@ -6,38 +6,87 @@
 #define EHECATL_SCREEN_HPP
 
 #include "5x5_font.h"
+#include "communication.hpp"
 
 namespace EHECATL{
 
 
 
     class Base_Screen{
-        int width;
-        int height;
 
     public:
-        virtual void write_pixels(int start_x, int start_y, int end_x, int end_y, uint8_t ** data) = 0;
+        virtual void write_pixels(int start_x, int start_y, int end_x, int end_y, uint8_t * data) = 0;
     };
 
-    template<int width, int height>
     class Canvas{
+        int width;
+        int height;
         Base_Screen & screen;
 
 
     public:
-        Canvas(Base_Screen &screen) : screen(screen) {}
+
+        Canvas(int width, int height, Base_Screen &screen) : width(width), height(height), screen(screen) {}
 
     private:
     public:
-        template<typename t>
-        void writeAndFlushLine(int x, int y, char * text, int len, t color){
-            t print_buffer[8][width*6] = {};
+        void writeAndFlushLine(int x, int y, char * text, int len, uint16_t color){
+
+            uint16_t print_buffer[8*128] = {};
             for(int i = 0; i < len; i++){
-                FONTS::fontToCanvas<t>(text[i], print_buffer, color, i*6);
+                FONTS::fontToCanvas(x*6, x + len*6, text[i], print_buffer, 65000, i);
             }
-            screen.write_pixels(x * 6, y * 8, x + len*6, y + len*8, (uint8_t **)print_buffer);
+            screen.write_pixels(x * 6, y * 8, x*6 + len*6, y*8 + 8, (uint8_t *)print_buffer);
         }
     };
+
+
+
+    class screenManager {
+        EHECATL::Canvas & canvas;
+        EHECATL::communication & comms;
+        uint8_t error_x = 8;
+        uint8_t error_y = 0;
+
+        uint8_t height_x = 8;
+        uint8_t height_y = 2;
+
+        uint8_t state_x  = 8;
+        uint8_t state_y  = 1;
+
+        uint8_t speed_x = 8;
+        uint8_t speed_y = 3;
+
+
+        float speed_val = 0;
+        double height = 0;
+        char state_s[4] = {};
+        EHECATL::DRONE_MODE state = 232;
+
+        char error_text [8] = "error :";
+        char state_text [8] = "state :";
+        char height_text[8] = "height:";
+        char speed_text [8] = "speed :";
+
+
+
+    public:
+
+        screenManager(EHECATL::Canvas &canvas, EHECATL::communication &comms);
+
+
+        void print_error(uint8_t command, uint8_t *payload, uint8_t len);
+
+        void get_height(uint8_t command, uint8_t *payload, uint8_t len);
+
+        void print_state(uint8_t command, uint8_t *payload, uint8_t len);
+
+
+        void print_data() const;
+    };
+
 }
+
+
 
 #endif //EHECATL_SCREEN_HPP

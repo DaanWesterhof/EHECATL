@@ -16,17 +16,17 @@ namespace EHECATL{
         return actie;
     }
 
-    void PID_Controller::StateRecieved(uint8_t command, uint8_t *data, uint8_t len){
-        DRONE_MODE state = data[0];
-        switch(state){
-            case DRONE_MODES::LANDING:
-                target_x_angle = 0;
-                target_y_angle = 0;
-                target_r_speed = 0;
-                target_y_speed = 0;
-                isFlying = false;
-        }
-    }
+//    void PID_Controller::StateRecieved(uint8_t command, uint8_t *data, uint8_t len){
+//        DRONE_MODE state = data[0];
+//        switch(state){
+//            case DRONE_MODES::LANDING:
+//                target_x_angle = 0;
+//                target_y_angle = 0;
+//                target_r_speed = 0;
+//                target_y_speed = 0;
+//                isFlying = false;
+//        }
+//    }
 
     PID_Controller::PID_Controller(communication &comms) : comms(comms) {
         comms.addNewCallback(MSG_COMMANDS::CURRENT_ANGLES, COMM_CALLBACK(GyroAnglesRecieved));

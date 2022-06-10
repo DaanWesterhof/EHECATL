@@ -85,6 +85,84 @@ void print_state(uint8_t command, uint8_t * payload, uint8_t len){
 }
 
 
+class motorStateController{
+public:
+    motorStateController(EHECATL::Motors &motors, EHECATL::communication &comms, EHECATL::StateController &stateController)
+            : motors(motors), comms(comms), stateController(stateController) {
+        comms.addNewCallback(EHECATL::MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setSpeed));
+        comms.addNewCallback(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES , COMM_CALLBACK(joystickListener));
+        comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE , COMM_CALLBACK(state_listener));
+    }
+
+
+private:
+    EHECATL::Motors & motors;
+    EHECATL::communication & comms;
+    EHECATL::StateController & stateController;
+
+    int16_t change[4] = {};
+    uint16_t motor_speeds[4] = {};
+    uint16_t max_value = 1500;
+    bool send_joysticks = false;
+    double drone_speed = 0;
+    unsigned int time_since_landing = 0;
+
+public:
+
+    void joystickListener(uint8_t command, uint8_t * payload, uint8_t len){
+        if(!send_joysticks){
+            if(stateController.getState() == EHECATL::DRONE_MODES::LANDING){
+                stateController.setState(EHECATL::DRONE_MODES::FLYING);
+            }
+        }
+        else{
+            send_joysticks = false;
+        }
+    }
+
+    void setSpeed(uint8_t command, uint8_t * payload, uint8_t len){
+        drone_speed = *((double *)payload);
+    }
+
+    void state_listener(uint8_t command, uint8_t * payload, uint8_t len){
+        if(*payload != stateController.getState()) {
+            if (*payload == EHECATL::DRONE_MODES::LANDING) {
+                float angles[4] = {0, 0, 0, -0.1};
+                comms.localMessage(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t *) angles, 4 * 4);
+                send_joysticks = true;
+                time_since_landing = HAL_GetTick();
+                EHECATL::write_motor_speeds(motor_speeds);
+            }
+        }
+    }
+
+    void update(){
+        if(stateController.getState() == EHECATL::DRONE_MODES::FLYING){
+            motors.getChange(change);
+            for(int i = 0; i < 4 ; i++){
+                motor_speeds[i] += change[i];
+                if(motor_speeds[i] <1000){
+                    motor_speeds[i] = 1000;
+                }else if(motor_speeds[i] > max_value){
+                    motor_speeds[i] = max_value;
+                }
+            }
+            EHECATL::write_motor_speeds(motor_speeds);
+        }
+
+        else if(stateController.getState() == EHECATL::DRONE_MODES::LANDING){
+            if(HAL_GetTick() - time_since_landing > 3000){
+                if(drone_speed < 0.01 &&  drone_speed > -0.01){
+                    stateController.setState(EHECATL::DRONE_MODES::IDLE);
+                    uint16_t speeds[4] = {1050, 1050, 1050, 1050};
+                    EHECATL::write_motor_speeds(speeds);
+                }
+            }
+        }
+    }
+};
+
+
 
 
 /* USER CODE END 0 */
@@ -150,6 +228,8 @@ int drone_main(void)
     EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
+
+    motorStateController controller(motors, comms, state_controller);
     mpu.init();
 
 
@@ -168,12 +248,6 @@ int drone_main(void)
     unsigned int last_update = 0;
     EHECATL::DRONE_MODE current_mode = state_controller.getState();
 
-
-    int16_t change[4] = {};
-    uint16_t motor_speeds[4] = {};
-    uint16_t max_value = 1500;
-
-
     while (_true)
     {
 
@@ -184,19 +258,9 @@ int drone_main(void)
         }
         mpu.update();
         barometer.update();
+        controller.update();
 
-        if(state_controller.getState() == EHECATL::DRONE_MODES::FLYING){
-            motors.getChange(change);
-            for(int i = 0; i < 4 ; i++){
-                motor_speeds[i] += change[i];
-                if(motor_speeds[i] <1000){
-                    motor_speeds[i] = 1000;
-                }else if(motor_speeds[i] > max_value){
-                    motor_speeds[i] = max_value;
-                }
-            }
-            EHECATL::write_motor_speeds(motor_speeds);
-        }
+
     }
     return 0;
     /* USER CODE END 3 */

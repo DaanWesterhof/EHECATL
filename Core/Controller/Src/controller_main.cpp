@@ -82,28 +82,6 @@ void print_state(uint8_t command, uint8_t * payload, uint8_t len){
 
 
 
-class screenManager {
-    EHECATL::Canvas<21, 20> & canvas;
-    EHECATL::communication & comms;
-    uint8_t error_x = 0;
-    uint8_t error_y = 0;
-
-
-public:
-
-    screenManager(EHECATL::Canvas<21, 20> &canvas, EHECATL::communication &comms) : canvas(canvas), comms(comms) {
-        comms.addNewCallback(EHECATL::MSG_COMMANDS::ERROR_MESSAGE, COMM_CALLBACK(print_error));
-    }
-
-
-    void print_error(uint8_t command, uint8_t *payload, uint8_t len) {
-        canvas.writeAndFlushLine(error_x, error_y, (char *)(payload+1), len, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-
-    }
-
-};
-
-
 /* USER CODE END 0 */
 
 /**
@@ -139,6 +117,7 @@ int controller_main(void)
     MX_USART1_UART_Init();
     MX_DMA_Init();
     MX_SPI1_Init();
+    MX_SPI2_Init();
     /* USER CODE BEGIN 2 */
     char text[] = "Het apparaat is opgestart\n";
     HAL_UART_Transmit(&huart1, text, strlen(text), 100);
@@ -146,8 +125,9 @@ int controller_main(void)
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
     EHECATL::controller controll(htim2, comms);
     EHECATL::joystick joystick(hadc1, comms);
-    ST7735::ST7735 screen(GPIO_PIN_11, *GPIOA, GPIO_PIN_12, *GPIOA,  GPIO_PIN_13, *GPIOA, hspi1);
-    EHECATL::Canvas<100, 100> canvas(screen);
+    ST7735::ST7735 screen(GPIO_PIN_11, *GPIOA, GPIO_PIN_12, *GPIOA,  GPIO_PIN_0, *GPIOA, hspi2);
+    EHECATL::Canvas canvas(128, 160, screen);
+    EHECATL::screenManager manager(canvas, comms);
     comms.setDeviceId(1);
     comms.setTargetId(2);
     joystick.startup();
@@ -157,13 +137,66 @@ int controller_main(void)
     /* USER CODE BEGIN WHILE */
     HAL_Delay(100);
     volatile uint8_t _true = 1;
+    unsigned int last_time = HAL_GetTick();
+    unsigned int count = 0;
+    char _1[] = "00001";
+    char _2[] = "00010";
+    char _3[] = "00100";
+    char _4[] = "01000";
+    char _5[] = "10000";
+
+    char count_text[] = "1111";
+
     while (_true)
     {
+        //screen.FillRectangle(0, 0, 128, 160, 23030);
+        //count_text[0] = char(count+32);
+
+        count++;
+        if(count == 1){
+            canvas.writeAndFlushLine(0, 4, _1, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 5, _1, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 6, _1, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            HAL_Delay(100);
+        }else if(count  == 2){
+            canvas.writeAndFlushLine(0, 4, _2, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 5, _2, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 6, _2, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            HAL_Delay(100);
+        }else if(count  == 3){
+            canvas.writeAndFlushLine(0, 4, _3, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 5, _3, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 6, _3, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+
+            HAL_Delay(100);
+        }else if(count  == 4){
+            canvas.writeAndFlushLine(0, 4, _4, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 5, _4, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 6, _4, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            HAL_Delay(100);
+        }else if(count  == 5){
+            canvas.writeAndFlushLine(0, 4, _5, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 5, _5, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            canvas.writeAndFlushLine(0, 6, _5, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+            HAL_Delay(100);
+            count = 0;
+        }
+
+        canvas.writeAndFlushLine(0, 7, count_text, 4, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+
+
+
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        joystick.update();
-        comms.update();
+
+//        if(HAL_GetTick() - last_time > 50){
+//            //manager.print_data();
+//            last_time = HAL_GetTick();
+//        }
+
+//        joystick.update();
+//        comms.update();
 
     }
     /* USER CODE END 3 */

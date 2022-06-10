@@ -23,6 +23,7 @@ namespace EHECATL{
         static inline constexpr const uint8_t DESIRED_STATE         = 10;
         static inline constexpr const uint8_t STATE_UP              = 11;
         static inline constexpr const uint8_t STATE_DOWN            = 12;
+        static inline constexpr const uint8_t DRONE_HEIGHT          = 13;
     };
 
 
@@ -34,6 +35,10 @@ namespace EHECATL{
         static inline constexpr const DRONE_MODE FLYING         = 3;
         static inline constexpr const DRONE_MODE LANDING        = 4;
     };
+
+
+
+    void state_to_string(DRONE_MODE state, char * state_s);
 
     struct MISC_MESSAGES {
         static inline constexpr const uint8_t BUTTON_STATE_CHANGE = 101;

@@ -759,6 +759,10 @@ int8_t bmp3_init(struct bmp3_dev *dev)
             dev->dummy_byte = 0;
         }
 
+
+        /* Read the chip-id of bmp3 sensor */
+        rslt = bmp3_get_regs(BMP3_REG_CHIP_ID, &chip_id, 1, dev);
+
         /* Read the chip-id of bmp3 sensor */
         rslt = bmp3_get_regs(BMP3_REG_CHIP_ID, &chip_id, 1, dev);
 
@@ -2099,8 +2103,8 @@ static int8_t validate_osr_and_odr_settings(const struct bmp3_settings *settings
 
     /* Sampling period corresponding to ODR in microseconds  */
     uint32_t odr[18] = {
-        5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000, 2560000, 5120000, 10240000, 20480000,
-        40960000, 81920000, 163840000, 327680000, 655360000
+            5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000, 2560000, 5120000, 10240000, 20480000,
+            40960000, 81920000, 163840000, 327680000, 655360000
     };
 
     if (settings->press_en)
@@ -2445,7 +2449,7 @@ static int8_t compensate_temperature(double *temperature,
     /* Update the compensated temperature in calib structure since this is
      * needed for pressure calculation */
     calib_data->quantized_calib_data.t_lin = partial_data2 + (partial_data1 * partial_data1) *
-                                             calib_data->quantized_calib_data.par_t3;
+                                                             calib_data->quantized_calib_data.par_t3;
 
     /* Returns compensated temperature */
     if (calib_data->quantized_calib_data.t_lin < BMP3_MIN_TEMP_DOUBLE)

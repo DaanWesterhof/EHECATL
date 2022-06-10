@@ -134,5 +134,6 @@ void EHECATL::Barometer::update() {
         last_ticks = HAL_GetTick();
         comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)&speed, 16);
         comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 16);
+        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)&current_altitude, 16);
     }
 }

@@ -41,7 +41,6 @@ namespace EHECATL {
             for(int i = 0; i < 4; i++){
                 change[i] += desired_change_height[i];
                 change[i] += desired_change_movement[i];
-                change[i] += desired_change_movement[i];
             }
         }
 

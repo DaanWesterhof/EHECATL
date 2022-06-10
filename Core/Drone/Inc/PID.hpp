@@ -99,7 +99,7 @@ namespace EHECATL {
          */
         void startDrone(uint8_t command, uint8_t * data, uint8_t len);
 
-        void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
+//        void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
     };
 
 }

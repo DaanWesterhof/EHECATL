@@ -123,4 +123,11 @@ namespace EHECATL{
         return 0;
 
     }
+
+    void displayError(communication &comms, uint8_t error_type, char *message, unsigned int len) {
+        uint8_t error_message[12+1];
+        error_message[0] = error_type;
+        memcpy(error_message+1, message, len);
+        comms.sendMessage(EHECATL::MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *)message, len);
+    }
 }

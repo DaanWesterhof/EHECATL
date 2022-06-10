@@ -101,12 +101,7 @@ namespace FONTS {
     };
 
 
-    template<typename t>
-    void fontToCanvas(char character, t ** dataArray, t color, int index = 0){
-        for(int i = 0; i < 6; i++){
-            for(unsigned int j = 0; j < 8; j++) {
-                dataArray[j][index+i] = (font_6_8[uint8_t(character) - 32][i] & (1u<<(j)) ) ? color : 0;
-            }
-        }
-    }
+    void fontToCanvas(int startx, int endx, char character, uint16_t * dataArray, uint16_t color, int index = 0);
+
+
 }

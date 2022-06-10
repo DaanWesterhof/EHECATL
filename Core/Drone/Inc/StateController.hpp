@@ -19,8 +19,6 @@ namespace EHECATL {
         void state_up(uint8_t command, uint8_t * payload, uint8_t len);
         void state_down(uint8_t command, uint8_t * payload, uint8_t len);
 
-        void speedListener(double speed);
-
     public:
         DRONE_MODE getState();
 
