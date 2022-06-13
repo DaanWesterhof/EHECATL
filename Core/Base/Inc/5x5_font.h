@@ -101,7 +101,7 @@ namespace FONTS {
     };
 
 
-    void fontToCanvas(int startx, int endx, char character, uint16_t * dataArray, uint16_t color, int index = 0);
+    void fontToCanvas(int width, char character, uint16_t * dataArray, uint16_t color, int index = 0);
 
 
 }

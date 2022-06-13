@@ -75,7 +75,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 void print_state(uint8_t command, uint8_t * payload, uint8_t len){
-    char data[100];
+    char data[30];
     sprintf(data, "new_state: %u\n", *payload);
     HAL_UART_Transmit(&huart1, data, strlen(data), 100);
 }
@@ -123,11 +123,11 @@ int controller_main(void)
     HAL_UART_Transmit(&huart1, text, strlen(text), 100);
 
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
-    EHECATL::controller controll(htim2, comms);
     EHECATL::joystick joystick(hadc1, comms);
     ST7735::ST7735 screen(GPIO_PIN_11, *GPIOA, GPIO_PIN_12, *GPIOA,  GPIO_PIN_0, *GPIOA, hspi2);
     EHECATL::Canvas canvas(128, 160, screen);
     EHECATL::screenManager manager(canvas, comms);
+    EHECATL::controller controll(htim2, comms);
     comms.setDeviceId(1);
     comms.setTargetId(2);
     joystick.startup();
@@ -138,51 +138,22 @@ int controller_main(void)
     HAL_Delay(100);
     volatile uint8_t _true = 1;
     unsigned int last_time = HAL_GetTick();
-    unsigned int count = 0;
-    char _1[] = "00001";
-    char _2[] = "00010";
-    char _3[] = "00100";
-    char _4[] = "01000";
-    char _5[] = "10000";
+    unsigned int count = 100;
 
-    char count_text[] = "1111";
+    char count_text[10];
 
     while (_true)
     {
-        //screen.FillRectangle(0, 0, 128, 160, 23030);
-        //count_text[0] = char(count+32);
+        if(count >= 29496000){
+            canvas.clearArea(9, 5, strlen(count_text));
+            count = 100;
 
-        count++;
-        if(count == 1){
-            canvas.writeAndFlushLine(0, 4, _1, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 5, _1, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 6, _1, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            HAL_Delay(100);
-        }else if(count  == 2){
-            canvas.writeAndFlushLine(0, 4, _2, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 5, _2, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 6, _2, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            HAL_Delay(100);
-        }else if(count  == 3){
-            canvas.writeAndFlushLine(0, 4, _3, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 5, _3, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 6, _3, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-
-            HAL_Delay(100);
-        }else if(count  == 4){
-            canvas.writeAndFlushLine(0, 4, _4, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 5, _4, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 6, _4, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            HAL_Delay(100);
-        }else if(count  == 5){
-            canvas.writeAndFlushLine(0, 4, _5, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 5, _5, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            canvas.writeAndFlushLine(0, 6, _5, 5, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-            HAL_Delay(100);
-            count = 0;
         }
 
-        canvas.writeAndFlushLine(0, 7, count_text, 4, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+        sprintf(count_text, "%d", count, ST7735_COLOR565(0x1f, 0, 0));
+        count*=1.05;
+
+        canvas.writeAndFlushLine(9, 5, count_text, strlen(count_text), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
 
 
 
@@ -190,13 +161,14 @@ int controller_main(void)
 
         /* USER CODE BEGIN 3 */
 
-//        if(HAL_GetTick() - last_time > 50){
-//            //manager.print_data();
-//            last_time = HAL_GetTick();
-//        }
+        if(HAL_GetTick() - last_time > 50){
+            manager.print_data();
+            last_time = HAL_GetTick();
+        }
+        controll.update();
 
-//        joystick.update();
-//        comms.update();
+        joystick.update();
+        comms.update();
 
     }
     /* USER CODE END 3 */

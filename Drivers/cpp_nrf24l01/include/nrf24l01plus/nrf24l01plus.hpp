@@ -457,7 +457,7 @@ namespace nrf24l01 {
 
             do {
                 //osDelay(10);
-                HAL_Delay(100);
+                HAL_Delay(1);
                 no_operation();
                 if (last_status & NRF_STATUS::MAX_RT) {
                     result = false;

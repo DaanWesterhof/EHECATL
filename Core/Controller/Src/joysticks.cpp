@@ -12,12 +12,12 @@ namespace EHECATL{
     void joystick::sendSticks() {
         float temp_data[4];
         temp_data[0] = -float((Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200)/4094.0*5)-middle_values[0]);
-        temp_data[1] = float((Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200)/4094.0*5)-middle_values[1]);
-        temp_data[2] = float((Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200)/4094.0*5)-middle_values[2]);
+        temp_data[1] =  float((Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200)/4094.0*5)-middle_values[1]);
+        temp_data[2] =  float((Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200)/4094.0*5)-middle_values[2]);
         temp_data[3] = -float((Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200)/4094.0*5)-middle_values[3]);
         bool equal = true;
         for(int i = 0; i < 4; i++){
-            if(std::abs(temp_data[i] - data[i]) > 0.01){
+            if(std::abs(temp_data[i] - data[i]) > 0.02){
                 data[i] = temp_data[i];
                 equal = false;
             }

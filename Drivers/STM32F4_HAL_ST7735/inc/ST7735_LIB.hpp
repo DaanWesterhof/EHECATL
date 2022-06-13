@@ -59,7 +59,7 @@ namespace ST7735{
 
         void SetGamma(GammaDef gamma);
 
-        void write_pixels(int start_x, int start_y, int end_x, int end_y, uint8_t * data) override;
+        void write_pixels(int start_x, int start_y, int len, int height, uint8_t * data) override;
 
         void FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
     };

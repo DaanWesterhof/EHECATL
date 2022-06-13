@@ -188,13 +188,13 @@ void ST7735::ST7735::SetGamma(GammaDef gamma) {
 
 
 
-void ST7735::ST7735::write_pixels(int start_x, int start_y, int end_x, int end_y, uint8_t *data) {
+void ST7735::ST7735::write_pixels(int start_x, int start_y, int len, int height, uint8_t *data) {
     Select();
-    SetAddressWindow(start_x, start_y, end_x, end_y);
+    SetAddressWindow(start_x, start_y, start_x + len, start_y + height);
 
     HAL_GPIO_WritePin(&ST7735_DC_GPIO_Port, ST7735_DC_Pin, GPIO_PIN_SET);
-    int y = end_y - start_y;
-    int x = end_x - start_x +1;
+    int y = height;
+    int x = len+1;
     HAL_SPI_Transmit(&ST7735_SPI_PORT, data, x * y * 2, HAL_MAX_DELAY);
     Unselect();
 }
