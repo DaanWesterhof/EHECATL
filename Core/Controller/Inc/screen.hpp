@@ -67,7 +67,7 @@ namespace EHECATL{
 
 
         float speed_val = 0;
-        double height = 0;
+        char height_s[21] = "";
         char mode_s[4] = {};
         EHECATL::DRONE_MODE state = 232;
 

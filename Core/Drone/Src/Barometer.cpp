@@ -95,7 +95,8 @@ void EHECATL::Barometer::setBaseHeight() {
 }
 
 double EHECATL::Barometer::pressureToAltitude(double pressure) {
-    return 44330.0 * (1.0 - std::pow(pressure / 1013.25, 0.1903));
+    float atmospheric = pressure / 100.0f;
+    return 44330.0 * (1.0 - std::pow(atmospheric / 1013.25, 0.1903));
 }
 
 void EHECATL::Barometer::update() {
@@ -134,6 +135,8 @@ void EHECATL::Barometer::update() {
         last_ticks = HAL_GetTick();
         comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)&speed, 16);
         comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 16);
-        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)&current_altitude, 16);
+        char height_string[20];
+        sprintf(height_string, "%3.5f", current_altitude);
+        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)height_string, strlen(height_string));
     }
 }

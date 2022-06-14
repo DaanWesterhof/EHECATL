@@ -27,7 +27,7 @@ void EHECATL::screenManager::print_state(uint8_t command, uint8_t *payload, uint
 }
 
 void EHECATL::screenManager::get_height(uint8_t command, uint8_t *payload, uint8_t len) {
-    height = ((double *)payload)[0];
+    sprintf(height_s, "%s", (char *)payload);
 }
 
 void EHECATL::screenManager::print_mode(uint8_t command, uint8_t *payload, uint8_t len) {
@@ -40,11 +40,11 @@ void EHECATL::screenManager::print_mode(uint8_t command, uint8_t *payload, uint8
 }
 
 void EHECATL::screenManager::print_data() const {
-    char chight[10] = {};
-    sprintf(chight, "%4.2f", height);
-    canvas.writeAndFlushLine(height_x, height_y, chight, strlen(chight), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+    char cheight[20];
+    memcpy(cheight, height_s, strlen(height_s));
+    canvas.writeAndFlushLine(height_x, height_y, cheight, strlen(height_s), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
 
-    char cspeed[10] = {};
-    sprintf(cspeed, "%3.1f", speed_val);
+    char cspeed[20] = {};
+    sprintf(cspeed, "%f", speed_val);
     canvas.writeAndFlushLine(speed_x, speed_y, cspeed, strlen(cspeed), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
 }

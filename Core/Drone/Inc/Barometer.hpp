@@ -30,6 +30,7 @@ namespace EHECATL{
 
         double current_altitude = 0;
         double speed = 0;
+        double altitude_pointer[1];
 
         double last_altitude;
         double last_ticks = 0;

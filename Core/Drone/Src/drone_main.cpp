@@ -233,9 +233,6 @@ int drone_main(void)
     mpu.init();
 
 
-
-
-
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -252,6 +249,7 @@ int drone_main(void)
     {
 
         if(HAL_GetTick() - last_update > 250){
+            HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
             uint8_t st = state_controller.getState();
             comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
             last_update = HAL_GetTick();
@@ -259,6 +257,7 @@ int drone_main(void)
         mpu.update();
         barometer.update();
         controller.update();
+        comms.update();
 
 
     }
