@@ -31,6 +31,7 @@ namespace EHECATL{
     PID_Controller::PID_Controller(communication &comms) : comms(comms) {
         comms.addNewCallback(MSG_COMMANDS::CURRENT_ANGLES, COMM_CALLBACK(GyroAnglesRecieved));
         comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(newTargetAngles));
+        comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES_LOCALE, COMM_CALLBACK(newTargetAngles));
     }
 
     void PID_Controller::updatePids(float x_angle, float y_angle, float r_speed) {

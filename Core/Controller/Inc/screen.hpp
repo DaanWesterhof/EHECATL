@@ -66,8 +66,9 @@ namespace EHECATL{
         uint8_t speed_y = 4;
 
 
-        float speed_val = 0;
+        double speed_val = 0;
         char height_s[21] = "";
+        char  speed_s[21] = "";
         char mode_s[4] = {};
         EHECATL::DRONE_MODE state = 232;
 
@@ -90,6 +91,8 @@ namespace EHECATL{
 
 
         void get_height(uint8_t command, uint8_t *payload, uint8_t len);
+
+        void get_speed(uint8_t command, uint8_t * payload, uint8_t len);
 
         void print_mode(uint8_t command, uint8_t *payload, uint8_t len);
 

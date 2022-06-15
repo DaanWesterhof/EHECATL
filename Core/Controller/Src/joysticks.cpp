@@ -24,9 +24,6 @@ namespace EHECATL{
         }
 
         if(!equal) {
-            char data[100];
-            sprintf(data, "angles: x1:%f \t, x2:%f \t, y1:%f \t, y2:%f\n", temp_data[3], temp_data[1], temp_data[2], temp_data[0]);
-            HAL_UART_Transmit(&huart1, data, strlen(data), 100);
             comms.sendMessage(MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t *) data, 16);
         }
     }

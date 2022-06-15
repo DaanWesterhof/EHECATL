@@ -90,13 +90,12 @@ void EHECATL::Barometer::setBaseHeight() {
             base_height += data.pressure;
         }
     }
-    base_height = base_height / 10.0;
+    relative_pressure = base_height / 10.0 + 10000;
     comms.localMessage(MSG_COMMANDS::BAROMETER_BASE_HEIGHT, (uint8_t *) &base_height, 16);
 }
 
 double EHECATL::Barometer::pressureToAltitude(double pressure) {
-    float atmospheric = pressure / 100.0f;
-    return 44330.0 * (1.0 - std::pow(atmospheric / 1013.25, 0.1903));
+    return 44330.0 * (1.0 - std::pow(pressure / 101746 , 0.1903));
 }
 
 void EHECATL::Barometer::update() {
@@ -119,7 +118,7 @@ void EHECATL::Barometer::update() {
         //comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *)b_data, 16);
     }
     count++;
-    if (count == 5) {
+    if (count == 15) {
         sending = true;
         count = 0;
     }
@@ -128,15 +127,35 @@ void EHECATL::Barometer::update() {
         for (double i : b_data){
             sum += i;
         }
-        sum = sum/5.0;
-
+        sum = sum/15.0;
+        last_altitude = current_altitude;
         current_altitude = pressureToAltitude(sum);
-        speed = (current_altitude - last_altitude) / (HAL_GetTick() - last_ticks)*1000;
+
+        speed = ((current_altitude - last_altitude)*1.0f) / ((HAL_GetTick() - last_ticks)*1.0f)*1000.0f;
+        speed_list[speed_counter] = speed;
+        speed_counter++;
+        if(speed_counter == 15){
+            send_speed = true;
+            speed_counter = 0;
+        }
+
+
         last_ticks = HAL_GetTick();
-        comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)&speed, 16);
-        comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 16);
+
+        comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 8);
         char height_string[20];
         sprintf(height_string, "%3.5f", current_altitude);
-        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)height_string, strlen(height_string));
+        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)&height_string, strlen(height_string));
+
+        if(send_speed) {
+            for (double i : speed_list) {
+                speed += i;
+            }
+            speed = speed/50.0;
+            comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)&speed, 8);
+            char speed_string[20];
+            sprintf(speed_string, "%3.5f", speed);
+            comms.sendMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *) &speed_string, strlen(speed_string));
+        }
     }
 }

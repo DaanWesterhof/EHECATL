@@ -25,12 +25,18 @@ namespace EHECATL{
         uint8_t settings_sel;
         struct bmp3_dev dev;
         struct bmp3_data data = { 0 };
-        double b_data[5] = {};
+        double b_data[15] = {};
+        double speed_list[15] = {};
+        bool send_speed = false;
+        uint8_t speed_counter = 0;
+
+
         double sum = 0;
+
+        double relative_pressure = 0;
 
         double current_altitude = 0;
         double speed = 0;
-        double altitude_pointer[1];
 
         double last_altitude;
         double last_ticks = 0;

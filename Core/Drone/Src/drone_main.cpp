@@ -106,18 +106,15 @@ private:
     bool send_joysticks = false;
     double drone_speed = 0;
     unsigned int time_since_landing = 0;
+    bool landing = false;
 
 public:
 
     void joystickListener(uint8_t command, uint8_t * payload, uint8_t len){
-        if(!send_joysticks){
             if(stateController.getState() == EHECATL::DRONE_MODES::LANDING){
                 stateController.setState(EHECATL::DRONE_MODES::FLYING);
+                landing= false;
             }
-        }
-        else{
-            send_joysticks = false;
-        }
     }
 
     void setSpeed(uint8_t command, uint8_t * payload, uint8_t len){
@@ -125,19 +122,28 @@ public:
     }
 
     void state_listener(uint8_t command, uint8_t * payload, uint8_t len){
-        if(*payload != stateController.getState()) {
-            if (*payload == EHECATL::DRONE_MODES::LANDING) {
+            if (*payload == EHECATL::DRONE_MODES::LANDING && !landing) {
+                landing= true;
                 float angles[4] = {0, 0, 0, -0.1};
-                comms.localMessage(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t *) angles, 4 * 4);
                 send_joysticks = true;
+                comms.localMessage(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES_LOCALE, (uint8_t *) angles, 4 * 4);
                 time_since_landing = HAL_GetTick();
                 EHECATL::write_motor_speeds(motor_speeds);
             }
-        }
     }
 
-    void update(){
+    void update(EHECATL::Barometer &barometer, EHECATL::MPU_GYRO & mpu){
+        if(stateController.getState() == EHECATL::DRONE_MODES::SLEEP){
+
+        }
+        if(stateController.getState() == EHECATL::DRONE_MODES::SETUP){
+            barometer.setBaseHeight();
+            mpu.setOffsets();
+            stateController.setState(EHECATL::DRONE_MODES::FLYING);
+        }
         if(stateController.getState() == EHECATL::DRONE_MODES::FLYING){
+            mpu.update();
+            barometer.update();
             motors.getChange(change);
             for(int i = 0; i < 4 ; i++){
                 motor_speeds[i] += change[i];
@@ -151,11 +157,14 @@ public:
         }
 
         else if(stateController.getState() == EHECATL::DRONE_MODES::LANDING){
+            mpu.update();
+            barometer.update();
             if(HAL_GetTick() - time_since_landing > 3000){
-                if(drone_speed < 0.01 &&  drone_speed > -0.01){
+                if(drone_speed < 0.3 && drone_speed > -0.3){
                     stateController.setState(EHECATL::DRONE_MODES::IDLE);
                     uint16_t speeds[4] = {1050, 1050, 1050, 1050};
                     EHECATL::write_motor_speeds(speeds);
+                    landing = false;
                 }
             }
         }
@@ -254,9 +263,7 @@ int drone_main(void)
             comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
             last_update = HAL_GetTick();
         }
-        mpu.update();
-        barometer.update();
-        controller.update();
+        controller.update(barometer, mpu);
         comms.update();
 
 

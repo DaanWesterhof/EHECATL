@@ -144,19 +144,6 @@ int controller_main(void)
 
     while (_true)
     {
-        if(count >= 29496000){
-            canvas.clearArea(9, 5, strlen(count_text));
-            count = 100;
-
-        }
-
-        sprintf(count_text, "%d", count, ST7735_COLOR565(0x1f, 0, 0));
-        count*=1.05;
-
-        canvas.writeAndFlushLine(9, 5, count_text, strlen(count_text), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-
-
-
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

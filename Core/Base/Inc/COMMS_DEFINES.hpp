@@ -25,6 +25,7 @@ namespace EHECATL{
         static inline constexpr const uint8_t STATE_DOWN            = 12;
         static inline constexpr const uint8_t DRONE_HEIGHT          = 13;
         static inline constexpr const uint8_t CONNECTION_STATE      = 14;
+        static inline constexpr const uint8_t JOYSTICK_ANGLES_LOCALE= 15;
     };
 
 
