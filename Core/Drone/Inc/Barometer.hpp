@@ -11,6 +11,7 @@
 #include "communication.hpp"
 #include "usart.h"
 #include "common_porting.h"
+
 static uint8_t dev_addr;
 static uint8_t GTXBuffer[512];
 static uint8_t GRXBuffer[2048];
@@ -18,13 +19,13 @@ static uint8_t GRXBuffer[2048];
 
 BMP3_INTF_RET_TYPE bmp3_interface_init(struct bmp3_dev *bmp3, uint8_t intf);
 
-namespace EHECATL{
-    class Barometer{
+namespace EHECATL {
+    class Barometer {
     private: //variables
         int8_t rslt = 0;
         uint8_t settings_sel;
         struct bmp3_dev dev;
-        struct bmp3_data data = { 0 };
+        struct bmp3_data data = {0};
         double b_data[15] = {};
         double speed_list[15] = {};
         bool send_speed = false;
@@ -41,8 +42,8 @@ namespace EHECATL{
         double last_altitude;
         double last_ticks = 0;
 
-        struct bmp3_settings settings = { 0 };
-        struct bmp3_status status = { { 0 } };
+        struct bmp3_settings settings = {0};
+        struct bmp3_status status = {{0}};
 
         int count = 0;
         bool sending = false;
@@ -55,7 +56,9 @@ namespace EHECATL{
     public: //functions
         Barometer(communication &comms);
 
-
+        /**
+         * Set the hight of the drone, this height is used
+         */
         void setBaseHeight();
 
 
@@ -68,7 +71,6 @@ namespace EHECATL{
         void update();
     };
 }
-
 
 
 #endif //EHECATL_BAROMETER_HPP

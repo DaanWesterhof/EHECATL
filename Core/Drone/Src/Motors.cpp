@@ -45,10 +45,10 @@ namespace EHECATL {
     }
 
     Motors::Motors(communication &comms) : comms(comms) {
-        comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
-        comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(hoverController));
-        comms.addNewCallback(MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setMotorsForVerticalSpeed));
-        //comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(temp_motor_tester));
+        //comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
+        //comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(hoverController));
+        //comms.addNewCallback(MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setMotorsForVerticalSpeed));
+        comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(temp_motor_tester));
     }
 
     void Motors::StateRecieved(uint8_t command, uint8_t *data, uint8_t len) {
@@ -72,22 +72,15 @@ namespace EHECATL {
     }
 
     void Motors::temp_motor_tester(uint8_t command, uint8_t *data, uint8_t len) {
-        if(isFlying) {
+       //  if(isFlying) {
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
             time_since_motor = HAL_GetTick();
-            float *mdata = (float *) data;
-            motor_speeds[0] = 1000 + mdata[0] * 200;
-            motor_speeds[1] = 1000 + mdata[0] * 200;
-            motor_speeds[2] = 1000 + mdata[0] * 200;
-            motor_speeds[3] = 1000 + mdata[0] * 200;
+            uint16_t *mdata = (uint16_t *) data;
+            motor_speeds[0] = 1050 + mdata[0];
+            motor_speeds[1] = 1050 + mdata[0];
+            motor_speeds[2] = 1050 + mdata[0];
+            motor_speeds[3] = 1050 + mdata[0];
             write_motor_speeds(motor_speeds);
-        }else{
-            time_since_motor = HAL_GetTick();
-            motor_speeds[0] = 0;
-            motor_speeds[1] = 0;
-            motor_speeds[2] = 0;
-            motor_speeds[3] = 0;
-            write_motor_speeds(motor_speeds);
-            //new list for this
-        }
+       // }
     }
 }

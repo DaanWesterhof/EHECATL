@@ -8,19 +8,16 @@
 BMP3_INTF_RET_TYPE bmp3_interface_init(struct bmp3_dev *bmp3, uint8_t intf) {
     int8_t rslt = BMP3_OK;
 
-    if(bmp3 != NULL)
-    {
+    if (bmp3 != NULL) {
         /* Bus configuration : I2C */
-        if (intf == BMP3_I2C_INTF)
-        {
+        if (intf == BMP3_I2C_INTF) {
             dev_addr = BMP3_ADDR_I2C_SEC;
             bmp3->read = &SensorAPI_I2Cx_Read;
             bmp3->write = &SensorAPI_I2Cx_Write;
             bmp3->intf = BMP3_I2C_INTF;
         }
             /* Bus configuration : SPI */
-        else if (intf == BMP3_SPI_INTF)
-        {
+        else if (intf == BMP3_SPI_INTF) {
             dev_addr = 0;
 //            bmp3->read = SensorAPI_SPIx_Read;
 //            bmp3->write = SensorAPI_SPIx_Write;
@@ -29,9 +26,7 @@ BMP3_INTF_RET_TYPE bmp3_interface_init(struct bmp3_dev *bmp3, uint8_t intf) {
 
         bmp3->delay_us = &bmp3_delay_us;
         bmp3->intf_ptr = &dev_addr;
-    }
-    else
-    {
+    } else {
         rslt = BMP3_E_NULL_PTR;
     }
 
@@ -45,20 +40,20 @@ EHECATL::Barometer::Barometer(EHECATL::communication &comms) : comms(comms) {
      */
 
     rslt = bmp3_interface_init(&dev, BMP3_I2C_INTF);
-    if(rslt != BMP3_OK){
+    if (rslt != BMP3_OK) {
         char msg[100];
         sprintf(msg, "bad interface init\n");
-        comms.localMessage(MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *)msg, strlen(msg));
+        comms.localMessage(MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *) msg, strlen(msg));
     }
 
     bmp3_soft_reset(&dev);
 
     rslt = bmp3_init(&dev);
-    if(rslt != BMP3_OK){
+    if (rslt != BMP3_OK) {
         char msg[100];
         sprintf(msg, "bad bmp init: %i \n", rslt);
-        comms.localMessage(MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *)msg, strlen(msg));
-        while(1){};
+        comms.localMessage(MSG_COMMANDS::ERROR_MESSAGE, (uint8_t *) msg, strlen(msg));
+        while (1) {};
     }
 
     settings.int_settings.drdy_en = BMP3_ENABLE;
@@ -79,7 +74,7 @@ EHECATL::Barometer::Barometer(EHECATL::communication &comms) : comms(comms) {
 
 void EHECATL::Barometer::setBaseHeight() {
     double base_height = 0;
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         rslt = bmp3_get_status(&status, &dev);
         /* Read temperature and pressure data iteratively based on data ready interrupt */
         if ((rslt == BMP3_OK) && (status.intr.drdy == BMP3_ENABLE)) {
@@ -95,7 +90,7 @@ void EHECATL::Barometer::setBaseHeight() {
 }
 
 double EHECATL::Barometer::pressureToAltitude(double pressure) {
-    return 44330.0 * (1.0 - std::pow(pressure / 101746 , 0.1903));
+    return 44330.0 * (1.0 - std::pow(pressure / 101746, 0.1903));
 }
 
 void EHECATL::Barometer::update() {
@@ -122,19 +117,19 @@ void EHECATL::Barometer::update() {
         sending = true;
         count = 0;
     }
-    if(sending) {
+    if (sending) {
         sum = 0;
-        for (double i : b_data){
+        for (double i: b_data) {
             sum += i;
         }
-        sum = sum/15.0;
+        sum = sum / 15.0;
         last_altitude = current_altitude;
         current_altitude = pressureToAltitude(sum);
 
-        speed = ((current_altitude - last_altitude)*1.0f) / ((HAL_GetTick() - last_ticks)*1.0f)*1000.0f;
+        speed = ((current_altitude - last_altitude) * 1.0f) / ((HAL_GetTick() - last_ticks) * 1.0f) * 1000.0f;
         speed_list[speed_counter] = speed;
         speed_counter++;
-        if(speed_counter == 15){
+        if (speed_counter == 15) {
             send_speed = true;
             speed_counter = 0;
         }
@@ -145,14 +140,14 @@ void EHECATL::Barometer::update() {
         comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 8);
         char height_string[20];
         sprintf(height_string, "%3.5f", current_altitude);
-        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)&height_string, strlen(height_string));
+        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *) &height_string, strlen(height_string));
 
-        if(send_speed) {
-            for (double i : speed_list) {
+        if (send_speed) {
+            for (double i: speed_list) {
                 speed += i;
             }
-            speed = speed/50.0;
-            comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)&speed, 8);
+            speed = speed / 50.0;
+            comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *) &speed, 8);
             char speed_string[20];
             sprintf(speed_string, "%3.5f", speed);
             comms.sendMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *) &speed_string, strlen(speed_string));

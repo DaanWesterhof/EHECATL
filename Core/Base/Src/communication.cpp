@@ -47,7 +47,7 @@ namespace EHECATL{
 
         while ((nrf.last_status & nrf24l01::NRF_STATUS::RX_DR ) >0) {//there is data to read
             nrf.no_operation();
-            HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+            //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
             uint8_t wd = nrf.rx_payload_width();
             nrf.rx_read_payload(receive_buffer, wd);
@@ -92,6 +92,7 @@ namespace EHECATL{
         }
         nrf.no_operation();
         return nrf.tx_send(send_buffer, len+1);
+
 
     }
 

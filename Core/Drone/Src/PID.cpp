@@ -4,7 +4,7 @@
 
 #include "PID.hpp"
 
-namespace EHECATL{
+namespace EHECATL {
 
     float PID::calulateAction(float desired_value, float actual_value) {
         dt = HAL_GetTick() - last_dt;
@@ -56,7 +56,7 @@ namespace EHECATL{
         motor_change_values[2] += int(rotation_angle_correction);
         motor_change_values[3] += -int(rotation_angle_correction);
 
-        comms.localMessage(MSG_COMMANDS::MOTOR_DIFFERENCE, (uint8_t* ) motor_change_values, 5*4);
+        comms.localMessage(MSG_COMMANDS::MOTOR_DIFFERENCE, (uint8_t *) motor_change_values, 5 * 4);
     }
 
     void PID_Controller::GyroAnglesRecieved(uint8_t command, uint8_t *data, uint8_t len) {

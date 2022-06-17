@@ -52,11 +52,11 @@ void EHECATL::init_motor_pwm() {
 }
 
 void EHECATL::motor_arm() {
-    uint16_t motor_low[4] = {1000,1000, 1000, 1000};
-    uint16_t motor_high[4] = {2150, 2150, 2150, 2150};
+    uint16_t motor_low[4] = {500,500, 500, 500};
+    uint16_t motor_high[4] = {1000, 1000, 1000, 1000};
     write_motor_speeds(motor_low);
-    HAL_Delay(100);
+    HAL_Delay(500);
     write_motor_speeds(motor_high);
-    HAL_Delay(2000);
+    HAL_Delay(1000);
     write_motor_speeds(motor_low);
 }

@@ -78,27 +78,27 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void print_state(uint8_t command, uint8_t * payload, uint8_t len){
+void print_state(uint8_t command, uint8_t *payload, uint8_t len) {
     char data[100];
     sprintf(data, "new_state: %u\n", *payload);
     HAL_UART_Transmit(&huart1, data, strlen(data), 100);
 }
 
 
-class motorStateController{
+class motorStateController {
 public:
     motorStateController(EHECATL::Motors &motors, EHECATL::communication &comms, EHECATL::StateController &stateController)
             : motors(motors), comms(comms), stateController(stateController) {
         comms.addNewCallback(EHECATL::MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setSpeed));
-        comms.addNewCallback(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES , COMM_CALLBACK(joystickListener));
-        comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE , COMM_CALLBACK(state_listener));
+        comms.addNewCallback(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(joystickListener));
+        comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE, COMM_CALLBACK(state_listener));
     }
 
 
 private:
-    EHECATL::Motors & motors;
-    EHECATL::communication & comms;
-    EHECATL::StateController & stateController;
+    EHECATL::Motors &motors;
+    EHECATL::communication &comms;
+    EHECATL::StateController &stateController;
 
     int16_t change[4] = {};
     uint16_t motor_speeds[4] = {};
@@ -110,59 +110,65 @@ private:
 
 public:
 
-    void joystickListener(uint8_t command, uint8_t * payload, uint8_t len){
-            if(stateController.getState() == EHECATL::DRONE_MODES::LANDING){
-                stateController.setState(EHECATL::DRONE_MODES::FLYING);
-                landing= false;
-            }
-    }
-
-    void setSpeed(uint8_t command, uint8_t * payload, uint8_t len){
-        drone_speed = *((double *)payload);
-    }
-
-    void state_listener(uint8_t command, uint8_t * payload, uint8_t len){
-            if (*payload == EHECATL::DRONE_MODES::LANDING && !landing) {
-                landing= true;
-                float angles[4] = {0, 0, 0, -0.1};
-                send_joysticks = true;
-                comms.localMessage(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES_LOCALE, (uint8_t *) angles, 4 * 4);
-                time_since_landing = HAL_GetTick();
-                EHECATL::write_motor_speeds(motor_speeds);
-            }
-    }
-
-    void update(EHECATL::Barometer &barometer, EHECATL::MPU_GYRO & mpu){
-        if(stateController.getState() == EHECATL::DRONE_MODES::SLEEP){
-
-        }
-        if(stateController.getState() == EHECATL::DRONE_MODES::SETUP){
-            barometer.setBaseHeight();
-            mpu.setOffsets();
+    void joystickListener(uint8_t command, uint8_t *payload, uint8_t len) {
+        if (stateController.getState() == EHECATL::DRONE_MODES::LANDING) {
             stateController.setState(EHECATL::DRONE_MODES::FLYING);
+            landing = false;
         }
-        if(stateController.getState() == EHECATL::DRONE_MODES::FLYING){
-            mpu.update();
-            barometer.update();
-            motors.getChange(change);
-            for(int i = 0; i < 4 ; i++){
-                motor_speeds[i] += change[i];
-                if(motor_speeds[i] <1000){
-                    motor_speeds[i] = 1000;
-                }else if(motor_speeds[i] > max_value){
-                    motor_speeds[i] = max_value;
-                }
-            }
+    }
+
+    void setSpeed(uint8_t command, uint8_t *payload, uint8_t len) {
+        drone_speed = *((double *) payload);
+    }
+
+    void state_listener(uint8_t command, uint8_t *payload, uint8_t len) {
+        if (*payload == EHECATL::DRONE_MODES::LANDING && !landing) {
+            landing = true;
+            float angles[4] = {0, 0, 0, -0.1};
+            send_joysticks = true;
+            comms.localMessage(EHECATL::MSG_COMMANDS::JOYSTICK_ANGLES_LOCALE, (uint8_t *) angles, 4 * 4);
+            time_since_landing = HAL_GetTick();
             EHECATL::write_motor_speeds(motor_speeds);
         }
+    }
 
-        else if(stateController.getState() == EHECATL::DRONE_MODES::LANDING){
+    void update(EHECATL::Barometer &barometer, EHECATL::MPU_GYRO &mpu) {
+        if (stateController.getState() == EHECATL::DRONE_MODES::SLEEP) {
+
+        }
+        if (stateController.getState() == EHECATL::DRONE_MODES::SETUP) {
+
+            HAL_Delay(200);
+            //barometer.setBaseHeight();
+            //mpu.setOffsets();
+
+            motor_speeds[0] = 1050;
+            motor_speeds[1] = 1050;
+            motor_speeds[2] = 1050;
+            motor_speeds[3] = 1050;
+            EHECATL::write_motor_speeds(motor_speeds);
+            stateController.setState(EHECATL::DRONE_MODES::FLYING);
+        }
+        if (stateController.getState() == EHECATL::DRONE_MODES::FLYING) {
             mpu.update();
             barometer.update();
-            if(HAL_GetTick() - time_since_landing > 3000){
-                if(drone_speed < 0.3 && drone_speed > -0.3){
+//            motors.getChange(change);
+//            for (int i = 0; i < 4; i++) {
+//                motor_speeds[i] += change[i];
+//                if (motor_speeds[i] < 1000) {
+//                    motor_speeds[i] = 1000;
+//                } else if (motor_speeds[i] > max_value) {
+//                    motor_speeds[i] = max_value;
+//                }
+//            }
+
+        } else if (stateController.getState() == EHECATL::DRONE_MODES::LANDING) {
+            //mpu.update();
+            //barometer.update();
+            if (HAL_GetTick() - time_since_landing > 3000) {
+                if (drone_speed < 0.3 && drone_speed > -0.3) {
                     stateController.setState(EHECATL::DRONE_MODES::IDLE);
-                    uint16_t speeds[4] = {1050, 1050, 1050, 1050};
+                    uint16_t speeds[4] = {100, 100, 100, 100};
                     EHECATL::write_motor_speeds(speeds);
                     landing = false;
                 }
@@ -180,8 +186,7 @@ public:
   * @brief  The application entry point.
   * @retval int
   */
-int drone_main(void)
-{
+int drone_main(void) {
     /* USER CODE BEGIN 1 */
 
     /* USER CODE END 1 */
@@ -210,9 +215,18 @@ int drone_main(void)
 
     EHECATL::setTimers(&htim2, TIM_CHANNEL_1, &htim2, TIM_CHANNEL_2, &htim2, TIM_CHANNEL_3, &htim4, TIM_CHANNEL_1);
     EHECATL::init_motor_pwm();
-    bool armed = false;
+
+    HAL_Delay(100);
     EHECATL::motor_arm();
-    armed = true;
+
+    uint16_t motor_speeds[4] = {};
+    motor_speeds[0] = 1050;
+    motor_speeds[1] = 1050;
+    motor_speeds[2] = 1050;
+    motor_speeds[3] = 1050;
+    EHECATL::write_motor_speeds(motor_speeds);
+
+
 
     MX_USART1_UART_Init();
     MX_DMA_Init();
@@ -223,8 +237,8 @@ int drone_main(void)
     /* USER CODE BEGIN 2 */
     HAL_Delay(3000);
     uint8_t text_buffer[100];
-    sprintf((char *)text_buffer, "Het apparaat is opgestart\n");
-    HAL_UART_Transmit(&huart1, (char *)text_buffer, strlen((char*)text_buffer), 100);
+    sprintf((char *) text_buffer, "Het apparaat is opgestart\n");
+    HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
     HAL_Delay(1000);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
@@ -254,11 +268,10 @@ int drone_main(void)
     unsigned int last_update = 0;
     EHECATL::DRONE_MODE current_mode = state_controller.getState();
 
-    while (_true)
-    {
+    while (_true) {
 
-        if(HAL_GetTick() - last_update > 250){
-            HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        if (HAL_GetTick() - last_update > 250) {
+            //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
             uint8_t st = state_controller.getState();
             comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
             last_update = HAL_GetTick();
