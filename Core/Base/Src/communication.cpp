@@ -91,7 +91,7 @@ namespace EHECATL{
             send_buffer[i+1] = payload[i];
         }
         nrf.no_operation();
-        return nrf.tx_send(send_buffer, len+1);
+        return nrf.tx_send(send_buffer, len+1, false, receive_buffer);
 
 
     }

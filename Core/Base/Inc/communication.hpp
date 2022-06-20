@@ -10,6 +10,7 @@
 #include "nrf24l01plus/nrf24l01plus.hpp"
 #include <cstring>
 #include "COMMS_DEFINES.hpp"
+#include "telementry.h"
 
 //the amound of commands supported by the communication class
 
@@ -44,6 +45,8 @@ namespace EHECATL {
 
         //data send buffer
         uint8_t send_buffer[200] = {};
+
+
 
     private: //functions
 
@@ -127,6 +130,10 @@ namespace EHECATL {
          * @return 1 if callback is added successfully, 0 if there is not enough space for more callbacks.
          */
         int addNewCallback (uint8_t command, const std::function<void(uint8_t command, uint8_t * payload, uint8_t len)>& callback);
+
+        void updateTelementry(){
+
+        }
     };
 
     /**

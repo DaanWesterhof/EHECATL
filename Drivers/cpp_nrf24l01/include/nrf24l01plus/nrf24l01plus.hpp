@@ -227,8 +227,8 @@ namespace nrf24l01 {
         /**
          * \brief No Operation, can be used to retrieve last_status
          */
-        void no_operation() {
-            send_command(NRF_INSTRUCTION::RF24_NOP);
+        void no_operation(uint8_t * data_in_ptr = nullptr) {
+            send_command(NRF_INSTRUCTION::RF24_NOP, nullptr, 0, data_in_ptr);
         }
 
         /**
@@ -428,18 +428,18 @@ namespace nrf24l01 {
          * @param size Size of the data to write
          * @param noack If True, the payload is written with NO_ACK enabled
          */
-        void tx_write_payload(uint8_t *data, const uint8_t &size, bool noack = false) {
+        void tx_write_payload(uint8_t *data, const uint8_t &size, bool noack = false, uint8_t * data_in_ptr = nullptr) {
             if (noack) {
                 send_command(NRF_INSTRUCTION::W_TX_PAYLOAD_NO_ACK, data, size, nullptr);
             } else {
-                send_command(NRF_INSTRUCTION::W_TX_PAYLOAD, data, size, nullptr);
+                send_command(NRF_INSTRUCTION::W_TX_PAYLOAD, data, size, data_in_ptr);
             }
 
             tx_send_payload();
         }
 
 
-        bool tx_send(uint8_t * data, const uint8_t &size, bool noack = false) {
+        bool tx_send(uint8_t * data, const uint8_t &size, bool noack = false, uint8_t * data_ack_ptr = nullptr) {
             bool result = true;
             write_register(NRF_REGISTER::NRF_STATUS,  NRF_STATUS::TX_DS | NRF_STATUS::MAX_RT);
 
@@ -458,7 +458,7 @@ namespace nrf24l01 {
             do {
                 //osDelay(10);
                 HAL_Delay(1);
-                no_operation();
+                no_operation(data_ack_ptr);
                 if (last_status & NRF_STATUS::MAX_RT) {
                     result = false;
                     break;
