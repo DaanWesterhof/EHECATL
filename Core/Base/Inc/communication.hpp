@@ -46,6 +46,8 @@ namespace EHECATL {
         //data send buffer
         uint8_t send_buffer[200] = {};
 
+        telementry &telm;
+
 
 
     private: //functions
@@ -58,7 +60,7 @@ namespace EHECATL {
         /**
          * Updates the nrf communication, checks if new messages are available, and if so it will execture the callbacks associated with them.
          */
-        void update_nrf();
+        void update_nrf(telementry &tm, bool is_host = false);
 
         /**
          * Function that is exetuted when a message is recieved, it checks if there is a callback for the command and executes those callbacks.
@@ -77,6 +79,23 @@ namespace EHECATL {
             sprintf(str, "read_adress: %u, %u, %u, %u, %u\n", adr.address_bytes[0], adr.address_bytes[1], adr.address_bytes[2], adr.address_bytes[3], adr.address_bytes[4]);
             HAL_UART_Transmit(&huart1, str, strlen(str), 100);
         }
+
+
+        void updateAckPackage(){
+            //for some reason pipe 0 doesnt work it has to be pipe 1
+            nrf.write_ack_payload(1, telm.data, telm.width, true);
+        }
+
+        void handleAckPackage(uint8_t * data, size_t len, telementry & tm){
+            tm.parseFromData(data, len);
+
+            localMessage(MSG_COMMANDS::NEW_STATE, &tm.state, 1);
+            //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+            localMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)tm.height_data, strlen(tm.height_data));
+            localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)tm.speed_data, strlen(tm.speed_data));
+        }
+
+
         /**
          * Constructor for the communication class
          * @param bus A reference to a SPI handle from the stm32 HAL
@@ -85,7 +104,7 @@ namespace EHECATL {
          * @param cePort The HAL gpio port of the pin used for CE
          * @param ce the pin number used for the ce pin
          */
-        communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce);
+        communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce, telementry &telm);
 
         /**
          * Send a message to the local communicator to communicate with other modules on the same device.
@@ -120,7 +139,7 @@ namespace EHECATL {
         /**
          * Update the communications with other devices/recieve messages. Should be called often/in the main loop of the program.
          */
-        void update();
+        void update(telementry & tm, bool is_host = false);
 
         /**
          * Add a new callback to the communicator class. This can be a member function by callig it with a lambda, you can use the COMM_CALLBACK define for this functionality

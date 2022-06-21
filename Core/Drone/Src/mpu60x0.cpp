@@ -71,7 +71,7 @@ namespace EHECATL{
         HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "done things\n"), 100);
     }
 
-    void MPU_GYRO::update() {
+    void MPU_GYRO::update(telementry &telem) {
         fifoCount = mpu.getFIFOCount();
         if (fifoCount < packetSize) {
             return;
@@ -101,7 +101,6 @@ namespace EHECATL{
         angles[0] = x;
         angles[1] = y;
         angles[2] = z;
-
         comms.localMessage(MSG_COMMANDS::CURRENT_ANGLES, (uint8_t *)angles, 3*4);
     }
 }

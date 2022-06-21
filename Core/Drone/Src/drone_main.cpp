@@ -132,7 +132,7 @@ public:
         }
     }
 
-    void update(EHECATL::Barometer &barometer, EHECATL::MPU_GYRO &mpu) {
+    void update(EHECATL::Barometer &barometer, EHECATL::MPU_GYRO &mpu, EHECATL::telementry &telem) {
         if (stateController.getState() == EHECATL::DRONE_MODES::SLEEP) {
 
         }
@@ -150,8 +150,8 @@ public:
             stateController.setState(EHECATL::DRONE_MODES::FLYING);
         }
         if (stateController.getState() == EHECATL::DRONE_MODES::FLYING) {
-            mpu.update();
-            barometer.update();
+            mpu.update(telem);
+            barometer.update(telem);
 //            motors.getChange(change);
 //            for (int i = 0; i < 4; i++) {
 //                motor_speeds[i] += change[i];
@@ -164,7 +164,7 @@ public:
 
         } else if (stateController.getState() == EHECATL::DRONE_MODES::LANDING) {
             //mpu.update();
-            //barometer.update();
+            barometer.update(telem);
             if (HAL_GetTick() - time_since_landing > 3000) {
                 if (drone_speed < 0.3 && drone_speed > -0.3) {
                     stateController.setState(EHECATL::DRONE_MODES::IDLE);
@@ -241,8 +241,8 @@ int drone_main(void) {
     HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
     HAL_Delay(1000);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
-    EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
+    EHECATL::telementry teledata;
+    EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1, teledata);
     EHECATL::ErrorPrinter error_printer(comms, huart1);
     EHECATL::StateController state_controller(comms);
 
@@ -251,6 +251,7 @@ int drone_main(void) {
     EHECATL::MPU_GYRO mpu(huart1, hi2c1, comms);
     EHECATL::Barometer barometer(comms);
     EHECATL::DataPrinter printer(huart1, comms);
+
 
     motorStateController controller(motors, comms, state_controller);
     mpu.init();
@@ -270,14 +271,17 @@ int drone_main(void) {
 
     while (_true) {
 
-        if (HAL_GetTick() - last_update > 250) {
+        if (HAL_GetTick() - last_update > 50) {
             //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
             uint8_t st = state_controller.getState();
-            comms.sendMessage(EHECATL::MSG_COMMANDS::NEW_STATE, &st, 1);
+            teledata.setState(st);
             last_update = HAL_GetTick();
+            comms.updateAckPackage();
         }
-        controller.update(barometer, mpu);
-        comms.update();
+
+        controller.update(barometer, mpu, teledata);
+        comms.update(teledata, false);
+
 
 
     }

@@ -41,7 +41,7 @@ namespace EHECATL{
         nrf.mode(nrf.MODE_PRX);
     }
 
-    void communication::update_nrf() {
+    void communication::update_nrf(telementry &tm, bool is_host) {
 
         nrf.no_operation();
 
@@ -61,7 +61,12 @@ namespace EHECATL{
                                nrf24l01::NRF_STATUS::RX_DR | nrf24l01::NRF_STATUS::TX_DS);
             nrf.no_operation();
 
-            onMessageReceived(receive_buffer[0], &receive_buffer[1], wd-1);
+            if(!is_host) {
+                onMessageReceived(receive_buffer[0], &receive_buffer[1], wd - 1);
+                updateAckPackage();
+            }else{
+                //handleAckPackage(receive_buffer, wd, tm);
+            }
         }
     }
 
@@ -77,7 +82,8 @@ namespace EHECATL{
     }
 
 
-    communication::communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce) : nrf(bus, csnPort, csn, cePort, ce) {
+    communication::communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce, telementry &telm)
+            : nrf(bus, csnPort, csn, cePort, ce), telm(telm) {
         setup_nrf();
     }
 
@@ -91,9 +97,12 @@ namespace EHECATL{
             send_buffer[i+1] = payload[i];
         }
         nrf.no_operation();
-        return nrf.tx_send(send_buffer, len+1, false, receive_buffer);
-
-
+        uint8_t width;
+        int res = nrf.tx_send(send_buffer, len+1, false, receive_buffer, &width);
+        if(res){
+            handleAckPackage(receive_buffer, width, telm);
+        }
+        return res;
     }
 
     void communication::setTargetId(uint8_t id) {
@@ -110,8 +119,8 @@ namespace EHECATL{
         nrf.rx_set_address(1, this_device_proxy_address);
     }
 
-    void communication::update() {
-        update_nrf();
+    void communication::update(telementry & tm, bool is_host) {
+        update_nrf(tm, is_host);
     }
 
     int communication::addNewCallback(uint8_t command, const std::function<void(uint8_t, uint8_t *, uint8_t)> &callback) {

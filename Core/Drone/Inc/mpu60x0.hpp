@@ -53,7 +53,7 @@ namespace EHECATL{
         /**
          * Get the latest rotations of the mpu6050 using the dmp and send them to the PID controller.
          */
-        void update();
+        void update(telementry &telem);
     };
 
 

@@ -90,10 +90,10 @@ void EHECATL::Barometer::setBaseHeight() {
 }
 
 double EHECATL::Barometer::pressureToAltitude(double pressure) {
-    return 44330.0 * (1.0 - std::pow(pressure / 101746, 0.1903));
+    return 44330.0 * (1.0 - std::pow(pressure / 101325, 0.1903));
 }
 
-void EHECATL::Barometer::update() {
+void EHECATL::Barometer::update(telementry &telem) {
     rslt = bmp3_get_status(&status, &dev);
     /* Read temperature and pressure data iteratively based on data ready interrupt */
 
@@ -138,19 +138,16 @@ void EHECATL::Barometer::update() {
         last_ticks = HAL_GetTick();
 
         comms.localMessage(MSG_COMMANDS::NEW_BAROMETER_DATA, (uint8_t *) &sum, 8);
-        char height_string[20];
-        sprintf(height_string, "%3.5f", current_altitude);
-        comms.sendMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *) &height_string, strlen(height_string));
 
+        telem.setHeightData( current_altitude);
         if (send_speed) {
             for (double i: speed_list) {
                 speed += i;
             }
             speed = speed / 50.0;
             comms.localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *) &speed, 8);
-            char speed_string[20];
-            sprintf(speed_string, "%3.5f", speed);
-            comms.sendMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *) &speed_string, strlen(speed_string));
+
+            telem.setSpeedData(speed);
         }
     }
 }

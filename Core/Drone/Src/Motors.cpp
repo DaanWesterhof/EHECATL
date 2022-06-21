@@ -73,7 +73,7 @@ namespace EHECATL {
 
     void Motors::temp_motor_tester(uint8_t command, uint8_t *data, uint8_t len) {
        //  if(isFlying) {
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
             time_since_motor = HAL_GetTick();
             uint16_t *mdata = (uint16_t *) data;
             motor_speeds[0] = 1050 + mdata[0];

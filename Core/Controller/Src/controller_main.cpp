@@ -121,13 +121,14 @@ int controller_main(void)
     /* USER CODE BEGIN 2 */
     char text[] = "Het apparaat is opgestart\n";
     HAL_UART_Transmit(&huart1, text, strlen(text), 100);
-
-    EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1);
+    EHECATL::telementry tm;
+    EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1, tm);
     EHECATL::joystick joystick(hadc1, comms);
     ST7735::ST7735 screen(GPIO_PIN_11, *GPIOA, GPIO_PIN_12, *GPIOA,  GPIO_PIN_0, *GPIOA, hspi2);
     EHECATL::Canvas canvas(128, 160, screen);
     EHECATL::screenManager manager(canvas, comms);
     EHECATL::controller controll(htim2, comms);
+
     comms.setDeviceId(1);
     comms.setTargetId(2);
     joystick.startup();
@@ -148,14 +149,23 @@ int controller_main(void)
 
         /* USER CODE BEGIN 3 */
 
-        if(HAL_GetTick() - last_time > 50){
+        if(HAL_GetTick() - last_time > 100){
             manager.print_data();
             last_time = HAL_GetTick();
+            comms.sendMessage(EHECATL::MSG_COMMANDS::PING, nullptr, 0);
         }
         controll.update();
 
         joystick.update();
-        comms.update();
+        //comms.update(tm, true);
+
+        sprintf(count_text, "%d", count);
+        canvas.writeAndFlushLine(0, 8, count_text, strlen(count_text), ST7735_GREEN);
+        count = count * 1.05;
+        if(count > 1234567){
+            count = 100;
+        }
+
 
     }
     /* USER CODE END 3 */

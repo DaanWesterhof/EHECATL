@@ -10,23 +10,22 @@ namespace EHECATL {
 
 
     void joystick::sendSticks() {
-        uint16_t temp_data[4];
-        temp_data[0] = (Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200)- (4095/2))/4;
-        temp_data[1] = (Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200)- (4095/2))/4;
-        temp_data[2] = (Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200)- (4095/2))/4;
-        temp_data[3] = (Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200)- (4095/2))/4;
-//        bool equal = true;
-//        for (int i = 0; i < 4; i++) {
-//            if (std::abs(temp_data[i] - data[i]) > 0.02) {
-//                data[i] = temp_data[i];
-//                equal = false;
-//            }
-//        }
-        //temp_data[0] = 1200;
+        float temp_data[4];
+        temp_data[0] = -float((Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200)/4094.0*5)-middle_values[0]);
+        temp_data[1] =  float((Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200)/4094.0*5)-middle_values[1]);
+        temp_data[2] =  float((Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200)/4094.0*5)-middle_values[2]);
+        temp_data[3] = -float((Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200)/4094.0*5)-middle_values[3]);
+        bool equal = true;
+        for(int i = 0; i < 4; i++){
+            if(std::abs(temp_data[i] - data[i]) > 0.02){
+                data[i] = temp_data[i];
+                equal = false;
+            }
+        }
 
-        //if (!equal) {
-            comms.sendMessage(MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t *) temp_data, 4*2);
-        //}
+        if(!equal) {
+            comms.sendMessage(MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t *) data, 16);
+        }
     }
 
     void joystick::startup() {
@@ -45,7 +44,7 @@ namespace EHECATL {
     }
 
     void joystick::update() {
-        if (HAL_GetTick() - last_check > 10) {
+        if (HAL_GetTick() - last_check > 1000) {
             sendSticks();
             last_check = HAL_GetTick();
         }

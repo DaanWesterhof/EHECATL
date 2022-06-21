@@ -17,6 +17,7 @@
 #include "address.hpp"
 #include "spi.h"
 #include "usart.h"
+#include <cstring>
 
 namespace nrf24l01 {
 
@@ -264,6 +265,7 @@ namespace nrf24l01 {
         	if(clear_tx_fifo) {
 				tx_flush();
         	}
+
 			send_command(NRF_INSTRUCTION::W_ACK_PAYLOAD | (pipe & 0x03), data, n, nullptr);
         }
 
@@ -439,8 +441,8 @@ namespace nrf24l01 {
         }
 
 
-        bool tx_send(uint8_t * data, const uint8_t &size, bool noack = false, uint8_t * data_ack_ptr = nullptr) {
-            bool result = true;
+        bool tx_send(uint8_t * data, const uint8_t &size, bool noack = false, uint8_t * data_ack_ptr = nullptr, uint8_t * width = nullptr) {
+            bool result = false;
             write_register(NRF_REGISTER::NRF_STATUS,  NRF_STATUS::TX_DS | NRF_STATUS::MAX_RT);
 
             if(last_status & NRF_STATUS::TX_FULL) {
@@ -458,12 +460,22 @@ namespace nrf24l01 {
             do {
                 //osDelay(10);
                 HAL_Delay(1);
-                no_operation(data_ack_ptr);
+                no_operation();
                 if (last_status & NRF_STATUS::MAX_RT) {
                     result = false;
                     break;
                 }
             } while((last_status & NRF_STATUS::TX_DS) == 0);
+            if(((last_status & NRF_STATUS::RX_DR) > 0) && (last_status & NRF_STATUS::TX_DS)){
+                HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+                *width = rx_payload_width();
+                rx_read_payload(data_ack_ptr, *width);
+
+                write_register(nrf24l01::NRF_REGISTER::NRF_STATUS,
+                                   nrf24l01::NRF_STATUS::RX_DR);
+                no_operation();
+                result = true;
+            }
 
             rx_set_address(0, old_rx0);
 

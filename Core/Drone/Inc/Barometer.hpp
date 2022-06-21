@@ -68,7 +68,7 @@ namespace EHECATL {
         /**
          * Update function of the barometer, Takes the moving average of 5 measurements and sends it to the communication system.
          */
-        void update();
+        void update(telementry &telem);
     };
 }
 
