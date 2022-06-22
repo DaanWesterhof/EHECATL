@@ -17,7 +17,7 @@ namespace EHECATL{
 
         ADC_HandleTypeDef &hadc;
         communication &comms;
-        double data[4] = {};
+        int16_t data[4] = {};
         float middle_values[4] = {};
 
         bool ispressedl = false;

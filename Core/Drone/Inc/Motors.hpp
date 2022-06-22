@@ -31,6 +31,11 @@ namespace EHECATL {
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
         PID v_speed_pid = PID(0.3, 0.3, 0.3, 0);
 
+        int value = 0;
+        int last_value = 0;
+        int current_value = 0;
+        bool triggered = false;
+
     public:
 
         uint32_t time_since_motor = 0;
