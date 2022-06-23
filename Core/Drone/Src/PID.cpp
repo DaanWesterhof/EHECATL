@@ -41,22 +41,22 @@ namespace EHECATL {
         rotation_angle_correction = r_pid.calulateAction(r_speed, target_r_speed);
         //do calculation for motors for x and y z
         // add base onto it to keep flying, y height things
-        motor_change_values[0] = int(x_angle_correction);
-        motor_change_values[1] = int(x_angle_correction);
-        motor_change_values[2] = -int(x_angle_correction);
-        motor_change_values[3] = -int(x_angle_correction);
+        motor_change_values[0] = int16_t(x_angle_correction);
+        motor_change_values[1] = int16_t(x_angle_correction);
+        motor_change_values[2] = -int16_t(x_angle_correction);
+        motor_change_values[3] = -int16_t(x_angle_correction);
 
-        motor_change_values[0] += int(y_angle_correction);
-        motor_change_values[1] += int(y_angle_correction);
-        motor_change_values[2] += -int(y_angle_correction);
-        motor_change_values[3] += -int(y_angle_correction);
+        motor_change_values[0] += int16_t(y_angle_correction);
+        motor_change_values[1] += -int16_t(y_angle_correction);
+        motor_change_values[2] += int16_t(y_angle_correction);
+        motor_change_values[3] += -int16_t(y_angle_correction);
 
-        motor_change_values[0] += int(rotation_angle_correction);
-        motor_change_values[1] += -int(rotation_angle_correction);
-        motor_change_values[2] += int(rotation_angle_correction);
-        motor_change_values[3] += -int(rotation_angle_correction);
+        motor_change_values[0] += -int16_t(rotation_angle_correction);
+        motor_change_values[1] += int16_t(rotation_angle_correction);
+        motor_change_values[2] += int16_t(rotation_angle_correction);
+        motor_change_values[3] += -int16_t(rotation_angle_correction);
 
-        comms.localMessage(MSG_COMMANDS::MOTOR_DIFFERENCE, (uint8_t *) motor_change_values, 5 * 4);
+        comms.localMessage(MSG_COMMANDS::MOTOR_DIFFERENCE, (uint8_t *) motor_change_values, 4*sizeof(int16_t));
     }
 
     void PID_Controller::GyroAnglesRecieved(uint8_t command, uint8_t *data, uint8_t len) {
@@ -68,11 +68,10 @@ namespace EHECATL {
     }
 
     void PID_Controller::newTargetAngles(uint8_t command, uint8_t *data, uint8_t len) {
-        target_x_angle = data[0];
-        target_y_angle = data[1];
-        target_r_speed = data[2];
-        target_y_speed = data[3];
-        isFlying = true;
+        target_y_speed = data[0];
+        target_y_angle = data[1]/25.0;
+        target_x_angle = data[2]/25.0;
+        target_r_speed = data[3]/25.0;
     }
 
 }

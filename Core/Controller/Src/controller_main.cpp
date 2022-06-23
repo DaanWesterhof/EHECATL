@@ -118,16 +118,18 @@ int controller_main(void)
     MX_DMA_Init();
     MX_SPI1_Init();
     MX_SPI2_Init();
+
     /* USER CODE BEGIN 2 */
     char text[] = "Het apparaat is opgestart\n";
     HAL_UART_Transmit(&huart1, text, strlen(text), 100);
     EHECATL::telementry tm;
     EHECATL::communication comms(hspi1, *GPIOB, GPIO_PIN_0, *GPIOB, GPIO_PIN_1, tm);
-    EHECATL::joystick joystick(hadc1, comms);
+
     ST7735::ST7735 screen(GPIO_PIN_11, *GPIOA, GPIO_PIN_12, *GPIOA,  GPIO_PIN_0, *GPIOA, hspi2);
     EHECATL::Canvas canvas(128, 160, screen);
-    EHECATL::screenManager manager(canvas, comms);
+    EHECATL::screenManager manager(canvas, comms, tm);
     EHECATL::controller controll(htim2, comms);
+    EHECATL::joystick joystick(hadc1, comms, canvas);
 
     comms.setDeviceId(1);
     comms.setTargetId(2);
@@ -153,6 +155,8 @@ int controller_main(void)
             manager.print_data();
             last_time = HAL_GetTick();
             comms.sendMessage(EHECATL::MSG_COMMANDS::PING, nullptr, 0);
+//            char text2[] = "loopy\n";
+//            HAL_UART_Transmit(&huart1, text2, strlen(text2), 100);
         }
         controll.update();
 

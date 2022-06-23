@@ -81,6 +81,13 @@ namespace EHECATL {
         }
 
 
+        void pong(uint8_t command, uint8_t *payload, uint8_t len){
+            char str[100];
+            sprintf(str, "recieved ping\n");
+            HAL_UART_Transmit(&huart1, str, strlen(str), 100);
+        }
+
+
         void updateAckPackage(){
             //for some reason pipe 0 doesnt work it has to be pipe 1
             nrf.write_ack_payload(1, telm.data, telm.width, true);
@@ -91,8 +98,6 @@ namespace EHECATL {
 
             localMessage(MSG_COMMANDS::NEW_STATE, &tm.state, 1);
             //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-            localMessage(MSG_COMMANDS::DRONE_HEIGHT, (uint8_t *)tm.height_data, strlen(tm.height_data));
-            localMessage(MSG_COMMANDS::ALTITUDE_SPEED, (uint8_t *)tm.speed_data, strlen(tm.speed_data));
         }
 
 

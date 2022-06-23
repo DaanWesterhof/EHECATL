@@ -65,10 +65,12 @@ namespace EHECATL{
         uint8_t speed_x = 8;
         uint8_t speed_y = 4;
 
+        uint8_t rpm_x = 8;
+        uint8_t rpm_y = 5;
+
 
         double speed_val = 0;
-        char height_s[21] = "";
-        char  speed_s[21] = "";
+        telementry & tm;
         char mode_s[4] = {};
         EHECATL::DRONE_MODE state = 232;
 
@@ -77,22 +79,18 @@ namespace EHECATL{
         char mode_text  [8] = "mode  :";
         char height_text[8] = "height:";
         char speed_text [8] = "speed :";
+        char rpm_text   [8] = "rpm   :";
 
 
 
     public:
 
-        screenManager(EHECATL::Canvas &canvas, EHECATL::communication &comms);
+        screenManager(EHECATL::Canvas &canvas, EHECATL::communication &comms, telementry & tm);
 
 
         void print_error(uint8_t command, uint8_t *payload, uint8_t len);
 
         void print_state(uint8_t command, uint8_t *payload, uint8_t len);
-
-
-        void get_height(uint8_t command, uint8_t *payload, uint8_t len);
-
-        void get_speed(uint8_t command, uint8_t * payload, uint8_t len);
 
         void print_mode(uint8_t command, uint8_t *payload, uint8_t len);
 

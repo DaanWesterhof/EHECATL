@@ -25,7 +25,14 @@ namespace EHECATL {
         double desired_speed = 0;
         communication &comms;
 
+        uint16_t base_speed = 330;
+
+        uint16_t max_added_speed = 150;
+        uint16_t max_removed_speed = 150;
+
         double land_speed = -0.1;
+
+        telementry & telm;
 
 
         PID height_pid = PID(0.3, 0.3, 0.3, 0);
@@ -44,13 +51,13 @@ namespace EHECATL {
 
         void getChange(int16_t * change){
             for(int i = 0; i < 4; i++){
-                change[i] += desired_change_height[i];
-                change[i] += desired_change_movement[i];
+                change[i] = desired_change_movement[i];
+                //change[i] += desired_change_height[i];
             }
         }
 
 
-        explicit Motors(communication &comms);
+        Motors(communication &comms, telementry & telm);
 
         /**
          * Callback function for the communication system. Sets the motor speeds for rotations based on data from the joysticks and mpu6050.

@@ -51,14 +51,12 @@ namespace EHECATL {
         float old_r_pos = 0;
         int hal_last_tick = 0;
 
-        int motor_change_values[5] = {};
+        int motor_change_values[4] = {};
 
-        PID x_pid = PID(0.3, 0, 0, 0);
-        PID y_pid = PID(0.3, 0, 0, 0);
-        PID r_pid = PID(0.3, 0, 0, 0);
+        PID x_pid = PID(0.001, 0, 0.0001, 0);
+        PID y_pid = PID(0.001, 0, 0.0001, 0);
+        PID r_pid = PID(0.001, 0, 0.0001, 0);
         PID vertical_speed_pid = PID(0.3, 0 , 0, 0);
-
-        bool isFlying = false;
 
         /**
          * Uses the PIDS to calculate new changes for the motor speeds

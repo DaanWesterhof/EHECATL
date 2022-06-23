@@ -77,6 +77,13 @@ namespace EHECATL{
                 comms.localMessage(EHECATL::MSG_COMMANDS::CONNECTION_STATE, (uint8_t *)error, strlen(error));
                 disconected = true;
             }
+            if(disconected){
+                char text[] = "disconected\n";
+                HAL_UART_Transmit(&huart1, text, strlen(text), 100);
+            }else{
+                char text2[] = "conected\n";
+                HAL_UART_Transmit(&huart1, text2, strlen(text2), 100);
+            }
         }
 
     };

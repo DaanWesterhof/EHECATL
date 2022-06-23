@@ -85,6 +85,7 @@ namespace EHECATL{
     communication::communication(SPI_HandleTypeDef &bus, GPIO_TypeDef &csnPort, uint16_t csn, GPIO_TypeDef &cePort, uint16_t ce, telementry &telm)
             : nrf(bus, csnPort, csn, cePort, ce), telm(telm) {
         setup_nrf();
+        addNewCallback(MSG_COMMANDS::PING, COMM_CALLBACK(pong));
     }
 
     int communication::localMessage(uint8_t command, uint8_t *payload, uint8_t len) {
@@ -122,6 +123,7 @@ namespace EHECATL{
     void communication::update(telementry & tm, bool is_host) {
         update_nrf(tm, is_host);
     }
+
 
     int communication::addNewCallback(uint8_t command, const std::function<void(uint8_t, uint8_t *, uint8_t)> &callback) {
         if(count < COMMAND_COUNT){
