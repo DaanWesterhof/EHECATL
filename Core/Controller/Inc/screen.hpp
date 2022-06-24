@@ -65,8 +65,10 @@ namespace EHECATL{
         uint8_t speed_x = 8;
         uint8_t speed_y = 4;
 
-        uint8_t rpm_x = 8;
-        uint8_t rpm_y = 5;
+        uint8_t rpm_1_x = 0;
+        uint8_t rpm_1_y = 10;
+        uint8_t rpm_2_x = 0;
+        uint8_t rpm_2_y = 11;
 
 
         double speed_val = 0;

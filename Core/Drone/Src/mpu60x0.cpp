@@ -101,6 +101,9 @@ namespace EHECATL{
         angles[0] = x;
         angles[1] = y;
         angles[2] = z;
-        comms.localMessage(MSG_COMMANDS::CURRENT_ANGLES, (uint8_t *)angles, 3*4);
+        char text_buffer[100];
+        sprintf((char *) text_buffer, "x: %2.6f, y: %2.6f, z: %2.6f\t", angles[0], angles[1], angles[2]);
+        HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
+        comms.localMessage(MSG_COMMANDS::CURRENT_ANGLES, (uint8_t *)angles, 3*sizeof(float));
     }
 }

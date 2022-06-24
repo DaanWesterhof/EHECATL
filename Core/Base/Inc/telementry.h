@@ -17,15 +17,14 @@ namespace EHECATL{
 
 
     public:
-        uint8_t width = 1 + sizeof(double) + sizeof(double) + sizeof(int16_t);
-        uint8_t data[100];
+        uint8_t width = 1 + sizeof(double) + sizeof(double) + sizeof(uint16_t)*4;
+        uint8_t data[100] = {};
 
         EHECATL::DRONE_MODE state;
         char height_data[20] = "";
         char speed_data[20] = "";
-        char rpm_data[20] = "";
-
-
+        char rpm_data_1[25] = "";
+        char rpm_data_2[25] = "";
 
 
         void setState(uint8_t dstate){
@@ -44,9 +43,8 @@ namespace EHECATL{
 
         }
 
-        void setRpmData(int16_t rpm){
-            int16_t rp = rpm;
-            memcpy(data+start_rpm, (uint8_t *)&rp, sizeof(int16_t));
+        void setRpmData(uint16_t * rpm){
+            memcpy(data+start_rpm, (uint8_t *)rpm, sizeof(uint16_t)*4);
         }
 
         uint8_t getLen(){
@@ -57,13 +55,16 @@ namespace EHECATL{
             state = data_ptr[0];
             double height = 0;
             memcpy(&height, data_ptr+start_height, sizeof(double));
-            sprintf(height_data, "%f", height);
+            sprintf(height_data, "%3.8f", height);
             double speed = 0;
             memcpy(&speed, data_ptr+start_speed, sizeof(double));
-            sprintf(speed_data, "%f",  speed);
-            int16_t rpm = 0;
-            memcpy(&rpm, data_ptr+start_rpm, sizeof(int16_t));
-            sprintf(rpm_data, "%d", rpm);
+            sprintf(speed_data, "%3.8f",  speed);
+
+
+            uint16_t * rpm = (uint16_t *) (data_ptr + start_rpm);
+            //memcpy(rpm, data_ptr+start_rpm, sizeof(uint16_t)*4);
+            sprintf(rpm_data_1, "1: %4d, 2: %4d", rpm[0], rpm[1]);
+            sprintf(rpm_data_2, "3: %4d, 4: %4d", rpm[2], rpm[3]);
         }
 
     };

@@ -84,7 +84,7 @@ namespace EHECATL {
         void pong(uint8_t command, uint8_t *payload, uint8_t len){
             char str[100];
             sprintf(str, "recieved ping\n");
-            HAL_UART_Transmit(&huart1, str, strlen(str), 100);
+            //HAL_UART_Transmit(&huart1, str, strlen(str), 100);
         }
 
 

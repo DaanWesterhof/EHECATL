@@ -16,10 +16,10 @@ namespace EHECATL {
 
     void joystick::sendSticks() {
         int16_t temp_data[4];
-        temp_data[0] = Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200);// speed
-        temp_data[1] = Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200);//y angle
-        temp_data[2] = Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200);//x angle
-        temp_data[3] = Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200);//z rotation
+        temp_data[0] =        Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200);// speed
+        temp_data[2] = 4096 - Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200);//y angle
+        temp_data[1] =        Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200);//x angle
+        temp_data[3] = 4096 - Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200);//z rotation
         bool equal = true;
         for (int i = 0; i < 4; i++) {
             if (std::abs(temp_data[i] - data[i]) > 30) {
@@ -29,17 +29,22 @@ namespace EHECATL {
         }
 
         char line_data[40];
-        sprintf(line_data, "0: %d, 3: %d", temp_data[0], temp_data[3]);
-        canvas.writeAndFlushLine(0, 9, line_data, strlen(line_data), 0);
 
         //change to percentages
         for(int i = 0; i < 4; i++) {
             if (temp_data[i] >= middle_values[i]) {
-                temp_data[i] = (float(temp_data[i] - middle_values[i]) / float(4096 - middle_values[i] + 30)) * 50;
+                temp_data[i] = (float(temp_data[i] - middle_values[i]) / float(4096 - middle_values[i])) * 50;
             } else {
                 temp_data[i] = -50 + (float(temp_data[i]) / float(middle_values[i]) * 50);
             }
         }
+
+
+        sprintf(line_data, "0: %4d, 3: %4d", temp_data[0], temp_data[3]);
+        canvas.writeAndFlushLine(0, 6, line_data, strlen(line_data), 0);
+
+        sprintf(line_data, "1: %4d, 2: %4d", temp_data[1], temp_data[2]);
+        canvas.writeAndFlushLine(0, 7, line_data, strlen(line_data), 0);
 
         if (!equal) {
             comms.sendMessage(MSG_COMMANDS::JOYSTICK_ANGLES, (uint8_t *) temp_data, sizeof(int16_t) * 4);
@@ -48,17 +53,19 @@ namespace EHECATL {
 
     void joystick::startup() {
         unsigned int buffers[4];
-        for (int i = 0; i < 100; i++) {
-            buffers[0] += Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200);
-            buffers[1] += Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200);
-            buffers[2] += Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200);
-            buffers[3] += Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200);
-            HAL_Delay(10);
+        for (int i = 0; i < 30; i++) {
+            if(i > 9) {
+                buffers[0] +=        Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200);
+                buffers[2] += 4096 - Read_ADC_Channel(&hadc, ADC_CHANNEL_1, 200);
+                buffers[1] +=        Read_ADC_Channel(&hadc, ADC_CHANNEL_2, 200);
+                buffers[3] += 4096 - Read_ADC_Channel(&hadc, ADC_CHANNEL_4, 200);
+                HAL_Delay(10);
+            }
         }
-        middle_values[0] = buffers[0] / 100;
-        middle_values[1] = buffers[1] / 100;
-        middle_values[2] = buffers[2] / 100;
-        middle_values[3] = buffers[3] / 100;
+        middle_values[0] = 2000;
+        middle_values[1] = buffers[1] / 21;
+        middle_values[2] = buffers[2] / 21;
+        middle_values[3] = 2000;
     }
 
     void joystick::update() {

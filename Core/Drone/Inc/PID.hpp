@@ -19,8 +19,8 @@ namespace EHECATL {
         float bias = 0;
         float value = 0;
         float error = 0;
-        int sum_error = 0;
-        int previous_error = 0;
+        float sum_error = 0;
+        float previous_error = 0;
         uint32_t dt = 0;
         uint32_t last_dt = 0;
 
@@ -51,11 +51,14 @@ namespace EHECATL {
         float old_r_pos = 0;
         int hal_last_tick = 0;
 
+        float max_change = 100;
+        float min_change = -100;
+
         int motor_change_values[4] = {};
 
-        PID x_pid = PID(0.001, 0, 0.0001, 0);
-        PID y_pid = PID(0.001, 0, 0.0001, 0);
-        PID r_pid = PID(0.001, 0, 0.0001, 0);
+        PID x_pid = PID(1, 0, 0.01, 0);
+        PID y_pid = PID(1, 0, 0.01, 0);
+        PID r_pid = PID(1, 0, 0.01, 0);
         PID vertical_speed_pid = PID(0.3, 0 , 0, 0);
 
         /**

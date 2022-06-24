@@ -16,7 +16,6 @@ EHECATL::screenManager::screenManager(EHECATL::Canvas &canvas, EHECATL::communic
     canvas.writeAndFlushLine(0, mode_y, mode_text, 7, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
     canvas.writeAndFlushLine(0, height_y, height_text, 7, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
     canvas.writeAndFlushLine(0, speed_y, speed_text, 7, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-    canvas.writeAndFlushLine(0, rpm_y, rpm_text, 7, ST7735_COLOR565(0x1f, 0x3f, 0x1f));
 }
 
 void EHECATL::screenManager::print_error(uint8_t command, uint8_t *payload, uint8_t len) {
@@ -39,7 +38,8 @@ void EHECATL::screenManager::print_mode(uint8_t command, uint8_t *payload, uint8
 void EHECATL::screenManager::print_data() const {
     canvas.writeAndFlushLine(height_x, height_y, tm.height_data, strlen(tm.height_data), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
     canvas.writeAndFlushLine(speed_x, speed_y, tm.speed_data, strlen(tm.speed_data), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
-    canvas.writeAndFlushLine(rpm_x, rpm_y, tm.rpm_data, strlen(tm.rpm_data), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+    canvas.writeAndFlushLine(rpm_1_x, rpm_1_y, tm.rpm_data_1, strlen(tm.rpm_data_1), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
+    canvas.writeAndFlushLine(rpm_2_x, rpm_2_y, tm.rpm_data_2, strlen(tm.rpm_data_2), ST7735_COLOR565(0x1f, 0x3f, 0x1f));
 }
 
 

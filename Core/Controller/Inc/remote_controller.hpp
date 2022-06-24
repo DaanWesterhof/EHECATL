@@ -44,7 +44,7 @@ namespace EHECATL{
             HAL_UART_Transmit(&huart1, data, strlen(data), 100);
             time_since_state = HAL_GetTick();
             if(disconected) {
-                char error[] = "Connected";
+                char error[] = "Connected  ";
                 comms.localMessage(EHECATL::MSG_COMMANDS::CONNECTION_STATE, (uint8_t *) error, strlen(error));
                 disconected = false;
             }

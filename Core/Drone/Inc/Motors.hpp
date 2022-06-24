@@ -12,7 +12,9 @@
 namespace EHECATL {
 
     class Motors {
+    public:
         uint16_t motor_speeds[4] = {};
+    private:
 
         int16_t desired_change_height[4] = {};
         int16_t desired_change_movement[4] = {};
@@ -42,6 +44,8 @@ namespace EHECATL {
         int last_value = 0;
         int current_value = 0;
         bool triggered = false;
+        int16_t max_change = 100;
+        int16_t min_change = -100;
 
     public:
 
@@ -52,6 +56,13 @@ namespace EHECATL {
         void getChange(int16_t * change){
             for(int i = 0; i < 4; i++){
                 change[i] = desired_change_movement[i];
+                if(change[i] > max_change){
+                    change[i] = max_change;
+                }else if(change[i] < min_change){
+                    change[i] = min_change;
+                }
+
+
                 //change[i] += desired_change_height[i];
             }
         }

@@ -164,7 +164,7 @@ int controller_main(void)
         //comms.update(tm, true);
 
         sprintf(count_text, "%d", count);
-        canvas.writeAndFlushLine(0, 8, count_text, strlen(count_text), ST7735_GREEN);
+        canvas.writeAndFlushLine(0, 15, count_text, strlen(count_text), ST7735_GREEN);
         count = count * 1.05;
         if(count > 1234567){
             count = 100;

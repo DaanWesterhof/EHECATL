@@ -9,10 +9,17 @@ namespace EHECATL {
 
     void Motors::setMotorSpeedsForRotations(uint8_t command, uint8_t *data, uint8_t len) {
         int *mdata = (int *) data;
-        desired_change_movement[0] += mdata[0];
-        desired_change_movement[1] += mdata[1];
-        desired_change_movement[2] += mdata[2];
-        desired_change_movement[3] += mdata[3];
+        for(int i = 0; i < 4; i++){
+            desired_change_movement[i] += mdata[i];
+            if(desired_change_movement[i] > max_change){
+                desired_change_movement[i] = max_change;
+            }else if(desired_change_movement[i] < min_change){
+                desired_change_movement[i] = min_change;
+            }
+
+
+            //change[i] += desired_change_height[i];
+        }
     }
 
 
@@ -101,7 +108,6 @@ namespace EHECATL {
             }
             //base speed is 330;
 
-            telm.setRpmData(1050 + speed);
             motor_speeds[0] = 1050 + speed;
             motor_speeds[1] = 1050 + speed;
             motor_speeds[2] = 1050 + speed;

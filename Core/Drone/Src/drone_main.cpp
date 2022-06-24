@@ -103,7 +103,7 @@ private:
     int16_t change[4] = {};
 
     uint16_t motor_speeds[4] = {};
-    uint16_t max_value = 1480;
+    uint16_t max_value = 1500;
     bool send_joysticks = false;
     double drone_speed = 0;
     unsigned int time_since_landing = 0;
@@ -161,14 +161,20 @@ public:
             motors.getChange(change);
             uint16_t write_speeds[4];
             for (int i = 0; i < 4; i++) {
-                write_speeds[i] = motor_speeds[i] + change[i];
+
+                write_speeds[i] = motors.motor_speeds[i] + change[i];
                 if (write_speeds[i] < 1000) {
                     write_speeds[i] = 1000;
-                } else if (write_speeds[i] > max_value) {
+                }
+                if (write_speeds[i] > max_value) {
                     write_speeds[i] = max_value;
                 }
-                EHECATL::write_motor_speeds(write_speeds);
             }
+            telem.setRpmData(write_speeds);
+            char text_buffer[100];
+            sprintf((char *) text_buffer, "1: %4d, 2: %4d, 3: %4d, 4: %4d\n", write_speeds[0], write_speeds[1], write_speeds[2], write_speeds[3]);
+            HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
+            EHECATL::write_motor_speeds(write_speeds);
 
         } else if (stateController.getState() == EHECATL::DRONE_MODES::LANDING) {
             //mpu.update();
