@@ -5,7 +5,6 @@
 #ifndef EHECATL_MOTORS_HPP
 #define EHECATL_MOTORS_HPP
 #include "communication.hpp"
-#include "dshot.h"
 #include "tim.h"
 #include "PID.hpp"
 
@@ -61,9 +60,6 @@ namespace EHECATL {
                 }else if(change[i] < min_change){
                     change[i] = min_change;
                 }
-
-
-                //change[i] += desired_change_height[i];
             }
         }
 
@@ -88,16 +84,28 @@ namespace EHECATL {
         void hoverController(uint8_t command, uint8_t * data, uint8_t len);
 
         /**
-         * Callback function for the communication system. Sets the motor speeds for vertical movement based on user joystick controll.
+         * Callback function for the communication system. Sets the motor speeds for vertical movement based on user joystick controll in combination with a PID
          * @param command The command used to call this function
          * @param data The payload of the callback message, should be a pointer to an Int value.
          * @param len The length of the payload.
          */
         void setMotorsForVerticalSpeed(uint8_t command, uint8_t *data, uint8_t len);
 
+        /**
+         * Callback function that listens to the new_state command. if the state is flying, sets internal bool to true, if its idle it sets it to false
+         * @param command The command used to call this function
+         * @param data The payload of the callback message, should be a uint8_t indicating the new state
+         * @param len The length of the payload.
+         */
         void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
 
-        void temp_motor_tester(uint8_t command, uint8_t *data, uint8_t len);
+        /**
+         * Callback function for the communictaion system, sets the motor speed for vertical movement directly based ont he joystick angles.
+         * @param command The command used to call this function
+         * @param data The payload of the callback message, should be a pointer to a list of floats of length 4
+         * @param len The length of the payload.
+         */
+        void basicSpeedController(uint8_t command, uint8_t *data, uint8_t len);
 
     };
 

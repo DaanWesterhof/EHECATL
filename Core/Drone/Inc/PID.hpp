@@ -51,14 +51,14 @@ namespace EHECATL {
         float old_r_pos = 0;
         int hal_last_tick = 0;
 
-        float max_change = 100;
-        float min_change = -100;
+        float max_change = 30;
+        float min_change = -30;
 
         int motor_change_values[4] = {};
 
         PID x_pid = PID(1, 0, 0.01, 0);
         PID y_pid = PID(1, 0, 0.01, 0);
-        PID r_pid = PID(1, 0, 0.01, 0);
+        PID r_pid = PID(0.5, 0, 0.01, 0);
         PID vertical_speed_pid = PID(0.3, 0 , 0, 0);
 
         /**
@@ -100,7 +100,6 @@ namespace EHECATL {
          */
         void startDrone(uint8_t command, uint8_t * data, uint8_t len);
 
-//        void StateRecieved(uint8_t command, uint8_t *data, uint8_t len);
     };
 
 }

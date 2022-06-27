@@ -14,10 +14,12 @@
 
 //the amound of commands supported by the communication class
 
+// the maximum number of callbacks function on the system.
 #ifndef COMMAND_COUNT
 #define COMMAND_COUNT 30
 #endif
 
+// a macro function to turn a public member function into a lambda call that can be used by the communication system
 #define COMM_CALLBACK(functionname)  [&](uint8_t command, uint8_t * payload, uint8_t len) { this->functionname(command, payload, len);}
 
 namespace EHECATL {
@@ -28,7 +30,7 @@ namespace EHECATL {
     class communication{
     private: //variables
         //variables used for storing and accesing the functions
-        unsigned int commands[COMMAND_COUNT] = {};
+        uint8_t commands[COMMAND_COUNT] = {};
         std::function<void(uint8_t command, uint8_t * payload, uint8_t len)> callbacks[COMMAND_COUNT];
         unsigned int count = 0;
 
@@ -73,32 +75,33 @@ namespace EHECATL {
 
     public:  //functions
 
-        void check(){
-            nrf24l01::address adr = nrf.tx_get_address();
-            char str[100];
-            sprintf(str, "read_adress: %u, %u, %u, %u, %u\n", adr.address_bytes[0], adr.address_bytes[1], adr.address_bytes[2], adr.address_bytes[3], adr.address_bytes[4]);
-            HAL_UART_Transmit(&huart1, str, strlen(str), 100);
-        }
+        /**
+         * prints the adress writen to the nrf chip and the adres read from it.
+         */
+        void check();
 
 
-        void pong(uint8_t command, uint8_t *payload, uint8_t len){
-            char str[100];
-            sprintf(str, "recieved ping\n");
-            //HAL_UART_Transmit(&huart1, str, strlen(str), 100);
-        }
+        /**
+         * function to be called when the ping command is recieved. Uncomment the codeblock to enable printing to the terminal for debugging
+         * @param command the command that called the function
+         * @param payload the payload of the message
+         * @param len the length of the message
+         */
+        void pong(uint8_t command, uint8_t *payload, uint8_t len);
 
 
-        void updateAckPackage(){
-            //for some reason pipe 0 doesnt work it has to be pipe 1
-            nrf.write_ack_payload(1, telm.data, telm.width, true);
-        }
+        /**
+         * update the ack package with new data from the telementry data.
+         */
+        void updateAckPackage();
 
-        void handleAckPackage(uint8_t * data, size_t len, telementry & tm){
-            tm.parseFromData(data, len);
-
-            localMessage(MSG_COMMANDS::NEW_STATE, &tm.state, 1);
-            //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        }
+        /**
+         * function to handle the payload from an ack message
+         * @param data the data from the payload
+         * @param len the length of the payload
+         * @param tm reference to a telementry packate where we can store the data
+         */
+        void handleAckPackage(uint8_t * data, size_t len, telementry & tm);
 
 
         /**
@@ -141,27 +144,25 @@ namespace EHECATL {
          */
         void setDeviceId(uint8_t id);
 
+
         /**
          * Update the communications with other devices/recieve messages. Should be called often/in the main loop of the program.
+         * @param tm reference to the telementry object, is used to either store or send telementry data
+         * @param is_host boolean to tell if this device is the host of communication, defaults to false.
          */
         void update(telementry & tm, bool is_host = false);
 
         /**
          * Add a new callback to the communicator class. This can be a member function by callig it with a lambda, you can use the COMM_CALLBACK define for this functionality
-         *  addNewCallback(0, COMM_CALLBACK(memberfunction_name))
+         * addNewCallback(0, COMM_CALLBACK(memberfunction_name))
          * @param command The command on wich the function should be executed
          * @param callback The function that needs to be executed on the given command
          * @return 1 if callback is added successfully, 0 if there is not enough space for more callbacks.
          */
         int addNewCallback (uint8_t command, const std::function<void(uint8_t command, uint8_t * payload, uint8_t len)>& callback);
-
-        void updateTelementry(){
-
-        }
     };
 
     /**
-     *
      * max message length = 12
      * @param comms
      * @param error_type

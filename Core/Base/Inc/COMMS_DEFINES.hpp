@@ -9,6 +9,9 @@
 
 namespace EHECATL{
 
+    /**
+     * struct with commands used by the communcation system between the drone and controller and internal communication
+     */
     struct MSG_COMMANDS {
         static inline constexpr const uint8_t JOYSTICK_ANGLES       = 0;
         static inline constexpr const uint8_t MOTOR_VALUES          = 1;
@@ -28,10 +31,15 @@ namespace EHECATL{
         static inline constexpr const uint8_t JOYSTICK_ANGLES_LOCALE= 15;
         static inline constexpr const uint8_t PING                  = 16;
         static inline constexpr const uint8_t DRONE_RPM             = 17;
+        static inline constexpr const uint8_t BUTTON_STATE_CHANGE   = 18;
     };
 
 
+
     typedef uint8_t DRONE_MODE;
+    /**
+     * the difrent modes of the drone
+     */
     struct DRONE_MODES {
         static inline constexpr const DRONE_MODE SLEEP          = 0;
         static inline constexpr const DRONE_MODE SETUP          = 1;
@@ -42,10 +50,18 @@ namespace EHECATL{
 
 
 
+    /**
+     * turn a given state into a string
+     * @param state the state
+     * @param state_s a pointer to the char array/string where you want to store the text
+     */
     void state_to_string(DRONE_MODE state, char * state_s);
 
+    /**
+     *
+     */
     struct MISC_MESSAGES {
-        static inline constexpr const uint8_t BUTTON_STATE_CHANGE = 101;
+
     };
     
 }

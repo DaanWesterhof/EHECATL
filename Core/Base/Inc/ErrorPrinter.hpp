@@ -8,20 +8,19 @@
 #include "communication.hpp"
 #include "usart.h"
 namespace EHECATL{
+
+    /**
+     * class used to recieve error messages and print them to the terminal
+     */
     class ErrorPrinter{
         communication & comms;
         UART_HandleTypeDef & uart;
 
     public:
-        ErrorPrinter(communication &comms, UART_HandleTypeDef &uart) : comms(comms), uart(uart) {
-            comms.addNewCallback(MSG_COMMANDS::ERROR_MESSAGE, COMM_CALLBACK(error_printer));
-        }
+        ErrorPrinter(communication &comms, UART_HandleTypeDef &uart);
 
     private:
-        void error_printer(uint8_t command, uint8_t * payload, uint8_t len){
-            char * data = (char *)payload;
-            HAL_UART_Transmit(&uart, data, len, 100);
-        }
+        void error_printer(uint8_t command, uint8_t * payload, uint8_t len);
     };
 };
 

@@ -16,18 +16,6 @@ namespace EHECATL {
         return actie;
     }
 
-//    void PID_Controller::StateRecieved(uint8_t command, uint8_t *data, uint8_t len){
-//        DRONE_MODE state = data[0];
-//        switch(state){
-//            case DRONE_MODES::LANDING:
-//                target_x_angle = 0;
-//                target_y_angle = 0;
-//                target_r_speed = 0;
-//                target_y_speed = 0;
-//                isFlying = false;
-//        }
-//    }
-
     PID_Controller::PID_Controller(communication &comms) : comms(comms) {
         comms.addNewCallback(MSG_COMMANDS::CURRENT_ANGLES, COMM_CALLBACK(GyroAnglesRecieved));
         comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(newTargetAngles));
@@ -37,15 +25,14 @@ namespace EHECATL {
     void PID_Controller::updatePids(float x_angle, float y_angle, float r_speed) {
         float x_angle_correction, y_angle_correction, rotation_angle_correction = 0;
         x_angle_correction = x_pid.calulateAction(x_angle, target_x_angle);
+        y_angle_correction = x_pid.calulateAction(y_angle, target_y_angle);
+        rotation_angle_correction = x_pid.calulateAction(r_speed, target_r_speed);
 
         if(x_angle_correction > max_change){
             x_angle_correction = max_change;
         }else if (x_angle_correction < min_change){
             x_angle_correction = min_change;
         }
-
-
-
 
         //y_angle_correction = y_pid.calulateAction(y_angle, target_y_angle);
         if(y_angle_correction > max_change){
@@ -66,9 +53,11 @@ namespace EHECATL {
         motor_change_values[2] = int16_t(x_angle_correction);
         motor_change_values[3] = int16_t(x_angle_correction);
 
+#ifdef DRONE_DEBUG
         char text_buffer[100];
         sprintf((char *) text_buffer, "x angle correction: %d, target_x_angle: %2.6f\t", motor_change_values[0], target_x_angle);
         HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
+#endif
 
         motor_change_values[0] += -int16_t(y_angle_correction);
         motor_change_values[1] += int16_t(y_angle_correction);

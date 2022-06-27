@@ -5,6 +5,21 @@
 #include "screen.hpp"
 #include "ST7735_LIB.hpp"
 
+void EHECATL::Canvas::writeAndFlushLine(int x, int y, char *text, int len, uint16_t color) {
+
+    uint16_t print_buffer[8*128] = {};
+    for(int i = 0; i < len; i++){
+        FONTS::fontToCanvas(len*6+1, text[i], print_buffer, 65000, i);
+    }
+    screen.write_pixels(x*6, y * 8, len*6, 8, (uint8_t *)print_buffer);
+}
+
+void EHECATL::Canvas::clearArea(int x, int y, int len) {
+    uint16_t print_buffer[8*128] = {0};
+    screen.write_pixels(x*6, y*8, len*6, 8, (uint8_t *) print_buffer);
+}
+
+
 EHECATL::screenManager::screenManager(EHECATL::Canvas &canvas, EHECATL::communication &comms, telementry & tm) : canvas(canvas), comms(comms), tm(tm) {
     comms.addNewCallback(EHECATL::MSG_COMMANDS::ERROR_MESSAGE, COMM_CALLBACK(print_error));
     comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE, COMM_CALLBACK(print_mode));

@@ -74,14 +74,6 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void print_state(uint8_t command, uint8_t * payload, uint8_t len){
-    char data[30];
-    sprintf(data, "new_state: %u\n", *payload);
-    HAL_UART_Transmit(&huart1, data, strlen(data), 100);
-}
-
-
-
 /* USER CODE END 0 */
 
 /**
@@ -155,12 +147,11 @@ int controller_main(void)
             manager.print_data();
             last_time = HAL_GetTick();
             comms.sendMessage(EHECATL::MSG_COMMANDS::PING, nullptr, 0);
-//            char text2[] = "loopy\n";
-//            HAL_UART_Transmit(&huart1, text2, strlen(text2), 100);
         }
         controll.update();
 
         joystick.update();
+        //uncomment when the drone is to also take initative of communication
         //comms.update(tm, true);
 
         sprintf(count_text, "%d", count);

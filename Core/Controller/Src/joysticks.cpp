@@ -9,11 +9,6 @@ namespace EHECATL {
     joystick::joystick(ADC_HandleTypeDef &hadc, communication &comms, Canvas &canvas) : hadc(hadc), comms(comms), canvas(canvas) {}
 
 
-
-    void mapit(){
-
-    }
-
     void joystick::sendSticks() {
         int16_t temp_data[4];
         temp_data[0] =        Read_ADC_Channel(&hadc, ADC_CHANNEL_3, 200);// speed
@@ -83,24 +78,24 @@ namespace EHECATL {
             ispressedl = true;
             button_message_data[0] = 1;
             button_message_data[1] = 1;
-            comms.localMessage(EHECATL::MISC_MESSAGES::BUTTON_STATE_CHANGE, button_message_data, 2);
+            comms.localMessage(EHECATL::MSG_COMMANDS::BUTTON_STATE_CHANGE, button_message_data, 2);
         } else if (pressedl == 1 && ispressedl) {
             ispressedl = false;
             button_message_data[0] = 1;
             button_message_data[1] = 0;
-            comms.localMessage(EHECATL::MISC_MESSAGES::BUTTON_STATE_CHANGE, button_message_data, 2);
+            comms.localMessage(EHECATL::MSG_COMMANDS::BUTTON_STATE_CHANGE, button_message_data, 2);
         }
 
         if (pressedr == 0 && !ispressedr) {
             ispressedr = true;
             button_message_data[0] = 2;
             button_message_data[1] = 1;
-            comms.localMessage(EHECATL::MISC_MESSAGES::BUTTON_STATE_CHANGE, button_message_data, 2);
+            comms.localMessage(EHECATL::MSG_COMMANDS::BUTTON_STATE_CHANGE, button_message_data, 2);
         } else if (pressedr == 1 && ispressedr) {
             ispressedr = false;
             button_message_data[0] = 2;
             button_message_data[1] = 0;
-            comms.localMessage(EHECATL::MISC_MESSAGES::BUTTON_STATE_CHANGE, button_message_data, 2);
+            comms.localMessage(EHECATL::MSG_COMMANDS::BUTTON_STATE_CHANGE, button_message_data, 2);
         }
 
     }

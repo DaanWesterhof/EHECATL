@@ -27,11 +27,12 @@ namespace EHECATL{
 
 
         nrf.tx_set_address(target_device_adress);
-
+#ifdef DRONE_DEBUG
         char str[100];
         sprintf(str, "writing_adress: %u, %u, %u, %u, %u\n", target_device_adress.address_bytes[0], target_device_adress.address_bytes[1], target_device_adress.address_bytes[2], target_device_adress.address_bytes[3], target_device_adress.address_bytes[4]);
         HAL_UART_Transmit(&huart1, str, strlen(str), 100);
         check();
+#endif
 
         nrf.rx_auto_acknowledgement(0, true);
         nrf.rx_auto_acknowledgement(1, true);
@@ -47,7 +48,6 @@ namespace EHECATL{
 
         while ((nrf.last_status & nrf24l01::NRF_STATUS::RX_DR ) >0) {//there is data to read
             nrf.no_operation();
-            //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
             uint8_t wd = nrf.rx_payload_width();
             nrf.rx_read_payload(receive_buffer, wd);
@@ -64,8 +64,6 @@ namespace EHECATL{
             if(!is_host) {
                 onMessageReceived(receive_buffer[0], &receive_buffer[1], wd - 1);
                 updateAckPackage();
-            }else{
-                //handleAckPackage(receive_buffer, wd, tm);
             }
         }
     }
@@ -134,6 +132,31 @@ namespace EHECATL{
         }
         return 0;
 
+    }
+
+    void communication::check() {
+        nrf24l01::address adr = nrf.tx_get_address();
+        char str[100];
+        sprintf(str, "read_adress: %u, %u, %u, %u, %u\n", adr.address_bytes[0], adr.address_bytes[1], adr.address_bytes[2], adr.address_bytes[3], adr.address_bytes[4]);
+        HAL_UART_Transmit(&huart1, str, strlen(str), 100);
+    }
+
+    void communication::pong(uint8_t command, uint8_t *payload, uint8_t len) {
+#ifdef DRONE_DEBUG
+            char str[100];
+            sprintf(str, "recieved ping\n");
+            HAL_UART_Transmit(&huart1, str, strlen(str), 100);
+#endif
+    }
+
+    void communication::updateAckPackage() {
+        //for some reason pipe 0 doesnt work it has to be pipe 1
+        nrf.write_ack_payload(1, telm.data, telm.width, true);
+    }
+
+    void communication::handleAckPackage(uint8_t *data, size_t len, telementry &tm) {
+        tm.parseFromData(data, len);
+        localMessage(MSG_COMMANDS::NEW_STATE, &tm.state, 1);
     }
 
     void displayError(communication &comms, uint8_t error_type, char *message, unsigned int len) {

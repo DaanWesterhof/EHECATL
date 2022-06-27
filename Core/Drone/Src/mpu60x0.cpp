@@ -32,7 +32,7 @@ namespace EHECATL{
                     mpu.dmpGetQuaternion(&q,fifoBuffer);
                     mpu.dmpGetGravity(&gravity,&q);
                     mpu.dmpGetYawPitchRoll(ypr,&q,&gravity);
-                    if(i > 295) {
+                    if(i > 250) {
                         tempsets[1] += ypr[1] * 180 / PI;
                         tempsets[2] += ypr[2] * 180 / PI;
                         tempsets[0] += ypr[0] * 180 / PI;
@@ -54,21 +54,20 @@ namespace EHECATL{
         mpu.setFullScaleGyroRange(MPU6050_GYRO_FS_250);
 
         uint8_t val = mpu.dmpInitialize();
+
+#ifdef DRONE_DEBUG
         if(val == 0){
             HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "Dmp Initialised\n"), 100);
 
         }else{
 
-            HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "Something went wrong: %u\n", val), 100);
+            HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "Something went wrong with dmp initalisation: %u\n", val), 100);
         }
-        HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "We got here\n"), 100);
-
+#endif
 
         mpu.setDMPEnabled(true);
         packetSize = mpu.dmpGetFIFOPacketSize();
         fifoCount = mpu.getFIFOCount();
-
-        HAL_UART_Transmit(&huart1, (char *)text_buffer, sprintf((char *)text_buffer, "done things\n"), 100);
     }
 
     void MPU_GYRO::update(telementry &telem) {
@@ -98,12 +97,17 @@ namespace EHECATL{
                 z = ypr[0]*180/PI - ofsets[0];
             }
         }
+        float r_speed = (z - last_r)/(HAL_GetTick()-last_time)*1000;
+        last_time = HAL_GetTick();
+        last_r = z;
         angles[0] = x;
         angles[1] = y;
-        angles[2] = z;
+        angles[2] = r_speed;
+    #ifdef DRONE_DEBUG
         char text_buffer[100];
         sprintf((char *) text_buffer, "x: %2.6f, y: %2.6f, z: %2.6f\t", angles[0], angles[1], angles[2]);
         HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
+    #endif
         comms.localMessage(MSG_COMMANDS::CURRENT_ANGLES, (uint8_t *)angles, 3*sizeof(float));
     }
 }

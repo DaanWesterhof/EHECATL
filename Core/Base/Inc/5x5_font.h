@@ -1,6 +1,10 @@
 #include "stm32f4xx_hal.h"
 
 namespace FONTS {
+    /**
+     * a nice small font for on display, each character is max 5 wide with one blank line on the right.
+     * the characters are 8 pixels high, so for each vertical line of the character there is a byte. they are stored in the array using ascii order.
+     */
     const constexpr unsigned char font_6_8[96][6] = {
             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, //
             {0x5c, 0x00, 0x00, 0x00, 0x00, 0x00}, // !
@@ -101,6 +105,14 @@ namespace FONTS {
     };
 
 
+    /**
+     * convert a char to pixel data for that character
+     * @param width the width of the data array ( as you might have more then 1 character
+     * @param character the character to convert
+     * @param dataArray a pointer to the pixel array
+     * @param color the color you want the pixel to be in rgb565 format
+     * @param index the index of the location where the character should be.
+     */
     void fontToCanvas(int width, char character, uint16_t * dataArray, uint16_t color, int index = 0);
 
 

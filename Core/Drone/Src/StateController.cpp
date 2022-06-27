@@ -20,10 +20,12 @@ void EHECATL::StateController::setState(EHECATL::DRONE_MODE new_state) {
     comms.localMessage(MSG_COMMANDS::NEW_STATE, &current_state, 1);
     uint8_t data[1];
     data[0] = current_state;
-    //int res = comms.sendMessage(MSG_COMMANDS::NEW_STATE, data, 1);
+
+#ifdef DRONE_DEBUG
     char data1[100];
-    //sprintf(data1, "we got send_result: %d\n", res);
+    sprintf(data1, "we got send_result: %d\n", res);
     HAL_UART_Transmit(&huart1, data1, strlen(data1), 100);
+#endif
 }
 
 void EHECATL::StateController::state_down(uint8_t command, uint8_t *payload, uint8_t len) {

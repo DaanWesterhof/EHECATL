@@ -33,7 +33,9 @@ namespace EHECATL{
         float x;
         float y;
         float z;
+        float last_r = 0;
         float angles[3];
+        unsigned int last_time;
 
         MPU_GYRO(UART_HandleTypeDef &huart1, I2C_HandleTypeDef &hi2C1, communication &comms);
 

@@ -15,76 +15,41 @@
 namespace EHECATL{
 
     class controller{
-    private: //variables
+    private:
 
-        TIM_HandleTypeDef &timer;
         EHECATL::communication &comms;
-        int state = 1;
         uint32_t time_since_state = 0;
         bool disconected = true;
-
         DRONE_MODE recieved_state = DRONE_MODES::SLEEP;
-    public: //variables
 
-    private: //functions
+    public:
 
-        void sendNewState(DRONE_MODE desired_state){
-            uint8_t state_data[1] = {desired_state};
-            comms.sendMessage(EHECATL::MSG_COMMANDS::DESIRED_STATE, state_data, 1);
-            char data[30];
-            sprintf(data, "send_state: %u\n", desired_state);
-            HAL_UART_Transmit(&huart1, data, strlen(data), 100);
-        }
 
-    public: //functions
-        void print_state(uint8_t command, uint8_t * payload, uint8_t len){
-            char data[10];
-            recieved_state = *payload;
-            sprintf(data, "new_state: %u\n", *payload);
-            HAL_UART_Transmit(&huart1, data, strlen(data), 100);
-            time_since_state = HAL_GetTick();
-            if(disconected) {
-                char error[] = "Connected  ";
-                comms.localMessage(EHECATL::MSG_COMMANDS::CONNECTION_STATE, (uint8_t *) error, strlen(error));
-                disconected = false;
-            }
-        }
+        controller(EHECATL::communication &communicator);
 
-        controller(TIM_HandleTypeDef &timer, EHECATL::communication &communicator) : timer(timer), comms(communicator){
-            comms.addNewCallback(EHECATL::MSG_COMMANDS::NEW_STATE, COMM_CALLBACK(print_state));
-            comms.addNewCallback(EHECATL::MISC_MESSAGES::BUTTON_STATE_CHANGE, COMM_CALLBACK(state_switcher));
-            char error[] ="Disconected";
-            comms.localMessage(EHECATL::MSG_COMMANDS::CONNECTION_STATE, (uint8_t *)error, strlen(error));
-        }
+        /**
+         * callback function that prints the new state received by the drone via the ack message and updates the connection status
+         * @param command the command that called the function
+         * @param payload the payload of the command
+         * @param len the length of the command
+         */
+        void print_state(uint8_t command, uint8_t * payload, uint8_t len);
 
-        void state_switcher(uint8_t command, uint8_t * payload, uint8_t len){
-            if(payload[1] == 1){//a button has been pressed
-                if(payload[0] == 2){ //its the right button
-                    uint8_t p_data[1] = {0};
-                    comms.sendMessage(EHECATL::MSG_COMMANDS::STATE_UP, p_data, 1);
-                }
-                if(payload[0] == 1){ //its the left button
-                    uint8_t p_data[1] = {0};
-                    comms.sendMessage(EHECATL::MSG_COMMANDS::STATE_DOWN, p_data, 1);
-                }
-            }
+        /**
+         * callback function that listens to button presses,
+         * sends a state up command if button 2/the right button is pressed
+         * sends a state down if button 1 /the left button is pressed
+         * @param command the command that called the function
+         * @param payload the payload of the command
+         * @param len length of the payload
+         */
+        void state_switcher(uint8_t command, uint8_t * payload, uint8_t len);
 
-        }
-
-        void update(){
-            if(HAL_GetTick() - time_since_state > 3000){
-                char error[] ="Disconected";
-                comms.localMessage(EHECATL::MSG_COMMANDS::CONNECTION_STATE, (uint8_t *)error, strlen(error));
-                disconected = true;
-            }
-            if(disconected){
-                char text[] = "disconected\n";
-                HAL_UART_Transmit(&huart1, text, strlen(text), 100);
-            }else{
-                char text2[] = "conected\n";
-                HAL_UART_Transmit(&huart1, text2, strlen(text2), 100);
-            }
-        }
+        /**
+         * update the controller, if more then 3 seconds have passed since the last ack package, set state to disconnected
+         * and print the current state of connected/disconnected to the terminal.
+         */
+        void update();
 
     };
 }

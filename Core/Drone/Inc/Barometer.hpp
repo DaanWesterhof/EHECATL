@@ -49,24 +49,20 @@ namespace EHECATL {
         bool sending = false;
 
         communication &comms;
-    public:  // variables
-
-    private: //functions
 
     public: //functions
         Barometer(communication &comms);
 
         /**
-         * Set the hight of the drone, this height is used
+         * function to turn pressure into an altitude, based on common sea level pressure of 1035000
+         * @param pressure the current presure on the drone
+         * @return
          */
-        void setBaseHeight();
-
-
         double pressureToAltitude(double pressure);
-
 
         /**
          * Update function of the barometer, Takes the moving average of 5 measurements and sends it to the communication system.
+         * @param telem reference to the telementry object used to update the ack package
          */
         void update(telementry &telem);
     };

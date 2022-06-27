@@ -55,7 +55,7 @@ namespace EHECATL {
         comms.addNewCallback(MSG_COMMANDS::MOTOR_DIFFERENCE, COMM_CALLBACK(setMotorSpeedsForRotations));
         //comms.addNewCallback(MSG_COMMANDS::NEW_BAROMETER_DATA, COMM_CALLBACK(hoverController));
         //comms.addNewCallback(MSG_COMMANDS::ALTITUDE_SPEED, COMM_CALLBACK(setMotorsForVerticalSpeed));
-        comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(temp_motor_tester));
+        comms.addNewCallback(MSG_COMMANDS::JOYSTICK_ANGLES, COMM_CALLBACK(basicSpeedController));
         comms.addNewCallback(MSG_COMMANDS::NEW_STATE, COMM_CALLBACK(StateRecieved));
     }
 
@@ -67,19 +67,22 @@ namespace EHECATL {
             isFlying = false;
         } else {
             if(state == DRONE_MODES::LANDING){
-                //desired_speed = land_speed;
-                //setMotorsForVerticalSpeed(0, (uint8_t *)&land_speed, 4);
+
             }
         }
     }
 
-    void Motors::temp_motor_tester(uint8_t command, uint8_t *data, uint8_t len) {
-
-        uint8_t text_buffer[100];
+    void Motors::basicSpeedController(uint8_t command, uint8_t *data, uint8_t len) {
         int16_t * mdata = (int16_t * )data;
+        uint8_t text_buffer[100];
+        #ifdef DRONE_DEBUG
         sprintf((char *) text_buffer, "angles: \t%d, \t%d, \t%d, \t%d\t\n", mdata[0], mdata[1], mdata[2], mdata[3]);
+        #endif
        if(isFlying) {
+            #ifdef DRONE_DEBUG
            HAL_UART_Transmit(&huart1, (char *) text_buffer, strlen((char *) text_buffer), 100);
+            #endif
+           //uncoment and comment the rest for direct motor control, updates by 5 up or down by flicking the controller joystick
 //############################################################# DIRECT MOTOR CONTROLL ##############################################################
 //            current_value = mdata[0];
 //            if (current_value > 2000  && !triggered){
@@ -112,7 +115,6 @@ namespace EHECATL {
             motor_speeds[1] = 1050 + speed;
             motor_speeds[2] = 1050 + speed;
             motor_speeds[3] = 1050 + speed;
-            //write_motor_speeds(motor_speeds);
        }
     }
 }
